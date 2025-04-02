@@ -1,0 +1,10 @@
+
+
+E:/altera/13.1/project/camera1/V/sdram_pll.v
+
+Aug 30 02AM:13:47>: Error in CNX file format.
+
+Error messages are listed in file
+E:/altera/13.1/project/camera1/V/sdram_pll.cnxerr.
+
+Can't create the custom megafunction variation file(s)

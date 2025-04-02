@@ -1,0 +1,37 @@
+
+
+C:/Users/ziyua/OneDrive - University of California, Davis/Desktop/sdram/camera/V/sdram_pll.v
+
+Apr 11 02PM:27:13>: Error in CNX file format.
+
+Error messages are listed in file
+C:/Users/ziyua/OneDrive - University of California, Davis/Desktop/sdram/camera/V/sdram_pll.cnxerr.
+
+Can't create the custom megafunction variation file(s)
+
+C:/Users/ziyua/OneDrive - University of California, Davis/Desktop/sdram/camera/V/sdram_pll.v
+
+Apr 11 02PM:29:40>: Error in CNX file format.
+
+Error messages are listed in file
+C:/Users/ziyua/OneDrive - University of California, Davis/Desktop/sdram/camera/V/sdram_pll.cnxerr.
+
+Can't create the custom megafunction variation file(s)
+
+C:/Users/ziyua/OneDrive - University of California, Davis/Desktop/sdram/camera/V/sdram_pll.v
+
+Apr 11 02PM:29:53>: Error in CNX file format.
+
+Error messages are listed in file
+C:/Users/ziyua/OneDrive - University of California, Davis/Desktop/sdram/camera/V/sdram_pll.cnxerr.
+
+Can't create the custom megafunction variation file(s)
+
+C:/Users/ziyua/OneDrive - University of California, Davis/Desktop/sdram2/camera/camera/V/sdram_pll.v
+
+Apr 11 02PM:39:29>: Error in CNX file format.
+
+Error messages are listed in file
+C:/Users/ziyua/OneDrive - University of California, Davis/Desktop/sdram2/camera/camera/V/sdram_pll.cnxerr.
+
+Can't create the custom megafunction variation file(s)
