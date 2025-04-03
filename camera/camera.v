@@ -160,17 +160,17 @@ always @(VGA_CTRL_CLK)begin
 end
 
 always @(*) begin
-	red_c   = red;
-	green_c = green;
-	blue_c  = blue;
+	red_c   = red + 1;
+	green_c = green + 1;
+	blue_c  = blue + 1;
 	WR1_addr_c = WR1_addr + 1;
 	WR2_addr_c = WR2_addr + 1;
 	RD1_addr_c = WR1_addr;
 	RD2_addr_c = WR2_addr;
-	if (WR1_addr == 23'd307199) begin
+	if (WR1_addr >= 23'd307199) begin
 		WR1_addr_c = 23'b0;
 	end
-	if (WR2_addr == 23'h14B000) begin
+	if (WR2_addr >= 23'h14AFFF) begin
 		WR2_addr_c = 23'b0 + 22'h100000;
 	end	
 
