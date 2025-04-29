@@ -11,6 +11,8 @@ module sliding_window #(parameter NUMBER_OF_LINES = 3,
 // Total number of elements in the buffer
 localparam BUFFER_SIZE = NUMBER_OF_LINES * WIDTH;
 
+wire [BUS_SIZE-1:0] dataout [0:NUMBER_OF_LINES-1][0:NUMBER_OF_LINES-1] // 3D array output
+
 // shift register
 reg [BUS_SIZE-1:0] fp_delay [0:BUFFER_SIZE-1];
 

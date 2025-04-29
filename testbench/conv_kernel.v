@@ -52,24 +52,58 @@ sliding_window # (
     sum_R = 0;
     sum_G = 0;
     sum_B = 0;
+    output_R = 0;
+    output_G = 0;
+    output_B = 0;
     
     // Apply the kernel to the window
     for (i = 0; i < SIZE; i = i + 1) begin
         for (j = 0; j < SIZE; j = j + 1) begin
             // Apply kernel for red channel
-            sum_R = sum_R + (window[i][j][3*PIXEL_DEPTH-1:2*PIXEL_DEPTH] * kernel[i][j]);
-            
-            // Apply kernel for green channel
-            sum_G = sum_G + (window[i][j][2*PIXEL_DEPTH-1:PIXEL_DEPTH] * kernel[i][j]);
-            
-            // Apply kernel for blue channel
-            sum_B = sum_B + (window[i][j][PIXEL_DEPTH-1:0] * kernel[i][j]);
+
+            if (kernel[i][j] < 0) begin
+                sum_R = sum_R - (window[i][j][3*PIXEL_DEPTH-1:2*PIXEL_DEPTH] * kernel[i][j]);
+                sum_G = sum_G - (window[i][j][2*PIXEL_DEPTH-1:PIXEL_DEPTH] * kernel[i][j]);
+                sum_B = sum_B - (window[i][j][PIXEL_DEPTH-1:0] * kernel[i][j]);    
+
+            end else begin
+                sum_R = sum_R + (window[i][j][3*PIXEL_DEPTH-1:2*PIXEL_DEPTH] * kernel[i][j]);
+                sum_G = sum_G + (window[i][j][2*PIXEL_DEPTH-1:PIXEL_DEPTH] * kernel[i][j]);
+                sum_B = sum_B + (window[i][j][PIXEL_DEPTH-1:0] * kernel[i][j]);
+            end
         end
     end
 
-    // Saturate the results for each channel (keeping within the 8-bit range)
-    output_R = valid_out ? (sum_R < 0) ? 8'd0 : sum_R / normalizing_factor : 0;
-    output_G = valid_out ? (sum_G < 0) ? 8'd0 : sum_G / normalizing_factor : 0;
-    output_B = valid_out ? (sum_B < 0) ? 8'd0 : sum_B / normalizing_factor : 0;
+    sum_R = sum_R / normalizing_factor;
+    sum_G = sum_G / normalizing_factor;
+    sum_B = sum_B / normalizing_factor;
+
+
+    if (valid_out) begin
+        if (sum_R > -255 && sum_R < 0) begin
+            output_R = -sum_R;
+        end else if (sum_R > 255 || sum_R < -255) begin
+            output_R = 8'd255;
+        end else begin
+            output_R = sum_R;
+        end
+
+        if (sum_G > -255 && sum_G < 0) begin
+            output_G = -sum_G;
+        end else if (sum_G > 255 || sum_G < -255) begin
+            output_G = 8'd255;
+        end else begin
+            output_G = sum_G;
+        end
+
+        if (sum_B > -255 && sum_B < 0) begin
+            output_B = -sum_B;
+        end else if (sum_B > 255 || sum_B < -255) begin
+            output_B = 8'd255;
+        end else begin
+            output_B = sum_B;
+        end
+    end
+
 end
 endmodule

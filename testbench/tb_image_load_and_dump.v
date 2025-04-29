@@ -50,7 +50,7 @@ module tb_image_load_and_dump;
 // assign green_out = (out_valid) ? (green_sum / 9) : 8'd0;
 // assign blue_out  = (out_valid) ? (blue_sum  / 9) : 8'd0;
 
-  reg signed [6:0] kernel [0:10][0:10];
+  reg signed [3:0] kernel [0:2][0:2];
   
 
   // Instantiate the image_loader module
@@ -68,10 +68,10 @@ module tb_image_load_and_dump;
   );
 
   conv_kernel # (
-    .SIZE(11),
+    .SIZE(3),
     .LINE_WIDTH(640),
     .PIXEL_DEPTH(8),
-    .KERNEL_WIDTH(7)
+    .KERNEL_WIDTH(4)
   )
   conv_kernel_inst (
     .clk(clk),
@@ -80,7 +80,7 @@ module tb_image_load_and_dump;
     .input_G(VGA_G),
     .input_B(VGA_B),
     .kernel(kernel),
-    .normalizing_factor(7'd121),
+    .normalizing_factor(4'd9),
     .valid_o(out_valid),
     .output_R(red_out),
     .output_G(green_out),
@@ -145,9 +145,9 @@ module tb_image_load_and_dump;
       // Initializing the kernel to all ones using a for loop (box blur)
   integer i, j;
   initial begin
-      for (i = 0; i < 11; i = i + 1) begin
-          for (j = 0; j < 11; j = j + 1) begin
-              kernel[i][j] = 7'd1;
+      for (i = 0; i < 3; i = i + 1) begin
+          for (j = 0; j < 3; j = j + 1) begin
+              kernel[i][j] = -4'd1;
           end
       end
   end
