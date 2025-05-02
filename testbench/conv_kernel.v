@@ -13,8 +13,6 @@ module conv_kernel #(
     input [PIXEL_DEPTH-1:0] input_B,
 
     input signed [KERNEL_WIDTH-1:0] kernel [0:SIZE-1] [0:SIZE-1],  // NxN convolutional kernel
-    input [KERNEL_WIDTH-1:0] normalizing_factor,
-
     output valid_o,
     output reg [PIXEL_DEPTH-1:0] output_R,
     output reg [PIXEL_DEPTH-1:0] output_G,
@@ -23,8 +21,30 @@ module conv_kernel #(
 
 localparam LINE_BUFFER_BUS_SIZE = 3*PIXEL_DEPTH + 1; // Extra bit for valid``
 localparam SUM_WIDTH = KERNEL_WIDTH + PIXEL_DEPTH + $clog2(SIZE*SIZE);
+localparam THRESHOLD = 50;
 
 wire [LINE_BUFFER_BUS_SIZE-1:0] window [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
+
+wire signed[PIXEL_DEPTH:0] window_R [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
+wire signed[PIXEL_DEPTH:0] window_G [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
+wire signed[PIXEL_DEPTH:0] window_B [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
+
+integer i, j;
+
+genvar iii, jjj;
+
+// Manual sign extension
+generate
+    for(iii = 0; iii < SIZE; iii++) begin
+        for(jjj=0; jjj < SIZE; jjj++) begin
+            assign window_R[iii][jjj] = {1'b0, window[iii][jjj][3*PIXEL_DEPTH-1:2*PIXEL_DEPTH]};
+            assign window_G[iii][jjj] = {1'b0, window[iii][jjj][2*PIXEL_DEPTH-1:PIXEL_DEPTH]};
+            assign window_B[iii][jjj] = {1'b0, window[iii][jjj][PIXEL_DEPTH-1:0]};
+        end
+    end
+endgenerate
+
+
 
 reg signed [SUM_WIDTH-1:0] sum_R, sum_G, sum_B;
 
@@ -45,8 +65,6 @@ sliding_window # (
     .dataout(window)
   );
 
-  integer i, j;
-
   always @(*) begin
     // Initialize sums to 0 for each color channel
     sum_R = 0;
@@ -60,48 +78,36 @@ sliding_window # (
     for (i = 0; i < SIZE; i = i + 1) begin
         for (j = 0; j < SIZE; j = j + 1) begin
             // Apply kernel for red channel
-
-            if (kernel[i][j] < 0) begin
-                sum_R = sum_R - (window[i][j][3*PIXEL_DEPTH-1:2*PIXEL_DEPTH] * kernel[i][j]);
-                sum_G = sum_G - (window[i][j][2*PIXEL_DEPTH-1:PIXEL_DEPTH] * kernel[i][j]);
-                sum_B = sum_B - (window[i][j][PIXEL_DEPTH-1:0] * kernel[i][j]);    
-
-            end else begin
-                sum_R = sum_R + (window[i][j][3*PIXEL_DEPTH-1:2*PIXEL_DEPTH] * kernel[i][j]);
-                sum_G = sum_G + (window[i][j][2*PIXEL_DEPTH-1:PIXEL_DEPTH] * kernel[i][j]);
-                sum_B = sum_B + (window[i][j][PIXEL_DEPTH-1:0] * kernel[i][j]);
-            end
+            sum_R = sum_R + (window_R[i][j] * kernel[i][j]);
+            sum_G = sum_G + (window_G[i][j] * kernel[i][j]);
+            sum_B = sum_B + (window_B[i][j] * kernel[i][j]);    
         end
     end
 
-    sum_R = sum_R / normalizing_factor;
-    sum_G = sum_G / normalizing_factor;
-    sum_B = sum_B / normalizing_factor;
-
 
     if (valid_out) begin
-        if (sum_R > -255 && sum_R < 0) begin
-            output_R = -sum_R;
-        end else if (sum_R > 255 || sum_R < -255) begin
-            output_R = 8'd255;
+        if (sum_R > -THRESHOLD && sum_R < 0) begin
+            output_R = 8'd0;
+        end else if (sum_R > THRESHOLD || sum_R < -THRESHOLD) begin
+            output_R = 8'hff;
         end else begin
-            output_R = sum_R;
+            output_R = 8'd0;
         end
 
-        if (sum_G > -255 && sum_G < 0) begin
-            output_G = -sum_G;
-        end else if (sum_G > 255 || sum_G < -255) begin
-            output_G = 8'd255;
+        if (sum_G > -THRESHOLD && sum_G < 0) begin
+            output_G = 8'd0;
+        end else if (sum_G > THRESHOLD || sum_G < -THRESHOLD) begin
+            output_G = 8'hff;
         end else begin
-            output_G = sum_G;
+            output_G = 8'd0;
         end
 
-        if (sum_B > -255 && sum_B < 0) begin
-            output_B = -sum_B;
-        end else if (sum_B > 255 || sum_B < -255) begin
-            output_B = 8'd255;
+        if (sum_B > -THRESHOLD && sum_B < 0) begin
+            output_B = 8'd0;
+        end else if (sum_B > THRESHOLD || sum_B < -THRESHOLD) begin
+            output_B = 8'hff;
         end else begin
-            output_B = sum_B;
+            output_B = 8'd0;
         end
     end
 

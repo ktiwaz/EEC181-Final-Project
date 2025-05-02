@@ -76,11 +76,10 @@ module tb_image_load_and_dump;
   conv_kernel_inst (
     .clk(clk),
     .valid_i(valid),
-    .input_R(VGA_R),
-    .input_G(VGA_G),
-    .input_B(VGA_B),
+    .input_R(oVGA_R),
+    .input_G(oVGA_G),
+    .input_B(oVGA_B),
     .kernel(kernel),
-    .normalizing_factor(4'd9),
     .valid_o(out_valid),
     .output_R(red_out),
     .output_G(green_out),
@@ -88,9 +87,9 @@ module tb_image_load_and_dump;
   );
 
   RGB_Process  RGB_Process_inst (
-    .raw_VGA_R(red_out),
-    .raw_VGA_G(green_out),
-    .raw_VGA_B(blue_out),
+    .raw_VGA_R(VGA_R),
+    .raw_VGA_G(VGA_G),
+    .raw_VGA_B(VGA_B),
     .row(row),
     .col(col),
     .filter_SW(6'b000000),
@@ -143,13 +142,12 @@ module tb_image_load_and_dump;
   end
 
       // Initializing the kernel to all ones using a for loop (box blur)
-  integer i, j;
   initial begin
-      for (i = 0; i < 3; i = i + 1) begin
-          for (j = 0; j < 3; j = j + 1) begin
-              kernel[i][j] = -4'd1;
-          end
-      end
+    // Sobel Y kernel
+    kernel[0][0] = -4'd1; kernel[1][0] =  4'd0; kernel[2][0] =  4'd1;
+    kernel[0][1] = -4'd2; kernel[1][1] =  4'd0; kernel[2][1] =  4'd2;
+    kernel[0][2] = -4'd1; kernel[1][2] =  4'd0; kernel[2][2] =  4'd1;
+
   end
 
   genvar ii, jj;
