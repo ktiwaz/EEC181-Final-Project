@@ -20,8 +20,8 @@ module conv_kernel #(
 );
 
 localparam LINE_BUFFER_BUS_SIZE = 3*PIXEL_DEPTH + 1; // Extra bit for valid``
-localparam SUM_WIDTH = KERNEL_WIDTH + PIXEL_DEPTH + $clog2(SIZE*SIZE);
-localparam THRESHOLD = 50;
+localparam SUM_WIDTH = KERNEL_WIDTH + PIXEL_DEPTH + $clog2(SIZE*SIZE) + 3;
+localparam THRESHOLD = 255;
 
 wire [LINE_BUFFER_BUS_SIZE-1:0] window [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
 
@@ -30,6 +30,8 @@ wire signed[PIXEL_DEPTH:0] window_G [0:SIZE-1][0:SIZE-1]; // Sliding window of p
 wire signed[PIXEL_DEPTH:0] window_B [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
 
 integer i, j;
+
+genvar ii, jj;
 
 genvar iii, jjj;
 
@@ -44,9 +46,24 @@ generate
     end
 endgenerate
 
-
+//   generate
+//   for (ii = 0; ii < SIZE; ii = ii + 1) begin
+//       for (jj = 0; jj < SIZE; jj = jj + 1) begin
+//           initial $dumpvars(0, kernel[ii][jj]);
+//           initial $dumpvars(0, window_R[ii][jj]);
+//       end
+//   end
+//   endgenerate
 
 reg signed [SUM_WIDTH-1:0] sum_R, sum_G, sum_B;
+
+wire signed [SUM_WIDTH-11:0] sum_R_slice;
+wire signed [SUM_WIDTH-11:0] sum_G_slice;
+wire signed [SUM_WIDTH-11:0] sum_B_slice;
+
+assign sum_R_slice = sum_R[SUM_WIDTH-1:13];
+assign sum_G_slice = sum_G[SUM_WIDTH-1:13];
+assign sum_B_slice = sum_B[SUM_WIDTH-1:13];
 
 wire valid_out;
 
@@ -86,28 +103,28 @@ sliding_window # (
 
 
     if (valid_out) begin
-        if (sum_R > -THRESHOLD && sum_R < 0) begin
-            output_R = 8'd0;
-        end else if (sum_R > THRESHOLD || sum_R < -THRESHOLD) begin
+        if (sum_R_slice > -THRESHOLD && sum_R_slice < 0) begin
+            output_R = -sum_R_slice;
+        end else if (sum_R_slice > THRESHOLD || sum_R_slice < -THRESHOLD) begin
             output_R = 8'hff;
         end else begin
-            output_R = 8'd0;
+            output_R = sum_R_slice;
         end
 
-        if (sum_G > -THRESHOLD && sum_G < 0) begin
-            output_G = 8'd0;
-        end else if (sum_G > THRESHOLD || sum_G < -THRESHOLD) begin
+        if (sum_G_slice > -THRESHOLD && sum_G_slice < 0) begin
+            output_G = -sum_G_slice;
+        end else if (sum_G_slice > THRESHOLD || sum_G_slice < -THRESHOLD) begin
             output_G = 8'hff;
         end else begin
-            output_G = 8'd0;
+            output_G = sum_G_slice;
         end
 
-        if (sum_B > -THRESHOLD && sum_B < 0) begin
-            output_B = 8'd0;
-        end else if (sum_B > THRESHOLD || sum_B < -THRESHOLD) begin
+        if (sum_B_slice > -THRESHOLD && sum_B_slice < 0) begin
+            output_B = -sum_B_slice;
+        end else if (sum_B_slice > THRESHOLD || sum_B_slice < -THRESHOLD) begin
             output_B = 8'hff;
         end else begin
-            output_B = 8'd0;
+            output_B = sum_B_slice;
         end
     end
 
