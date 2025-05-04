@@ -50,7 +50,7 @@ module tb_image_load_and_dump;
 // assign green_out = (out_valid) ? (green_sum / 9) : 8'd0;
 // assign blue_out  = (out_valid) ? (blue_sum  / 9) : 8'd0;
 
-  reg signed [8:0] kernel [0:10][0:10];
+  // reg signed [8:0] kernel [0:10][0:10];
   
 
   // Instantiate the image_loader module
@@ -68,19 +68,20 @@ module tb_image_load_and_dump;
   );
 
   conv_kernel # (
-    .SIZE(11),
-    .LINE_WIDTH(640),
-    .PIXEL_DEPTH(8),
-    .KERNEL_WIDTH(9)
+    .LINE_WIDTH(WIDTH),
+    .PIXEL_DEPTH(8)
   )
   conv_kernel_inst (
     .clk(clk),
-    .valid_i(valid),
+    .vs_ni(valid),
+    .hs_ni(1'b0),
+    .blank_ni(1'b0),
     .input_R(VGA_R),
     .input_G(VGA_G),
     .input_B(VGA_B),
-    .kernel(kernel),
-    .valid_o(out_valid),
+    .vs_no(out_valid),
+    .hs_no(),
+    .blank_no(),
     .output_R(red_out),
     .output_G(green_out),
     .output_B(blue_out)
@@ -141,40 +142,40 @@ module tb_image_load_and_dump;
     $finish;
   end
 
-  initial begin
-    kernel[0][0] = 9'd5;   kernel[0][1] = 9'd15;  kernel[0][2] = 9'd30;  kernel[0][3] = 9'd40;  kernel[0][4] = 9'd45;
-    kernel[0][5] = 9'd50;  kernel[0][6] = 9'd45;  kernel[0][7] = 9'd40;  kernel[0][8] = 9'd30;  kernel[0][9] = 9'd15; kernel[0][10] = 9'd5;
+  // initial begin
+  //   kernel[0][0] = 9'd5;   kernel[0][1] = 9'd15;  kernel[0][2] = 9'd30;  kernel[0][3] = 9'd40;  kernel[0][4] = 9'd45;
+  //   kernel[0][5] = 9'd50;  kernel[0][6] = 9'd45;  kernel[0][7] = 9'd40;  kernel[0][8] = 9'd30;  kernel[0][9] = 9'd15; kernel[0][10] = 9'd5;
   
-    kernel[1][0] = 9'd15;  kernel[1][1] = 9'd35;  kernel[1][2] = 9'd50;  kernel[1][3] = 9'd60;  kernel[1][4] = 9'd65;
-    kernel[1][5] = 9'd70;  kernel[1][6] = 9'd65;  kernel[1][7] = 9'd60;  kernel[1][8] = 9'd50;  kernel[1][9] = 9'd35; kernel[1][10] = 9'd15;
+  //   kernel[1][0] = 9'd15;  kernel[1][1] = 9'd35;  kernel[1][2] = 9'd50;  kernel[1][3] = 9'd60;  kernel[1][4] = 9'd65;
+  //   kernel[1][5] = 9'd70;  kernel[1][6] = 9'd65;  kernel[1][7] = 9'd60;  kernel[1][8] = 9'd50;  kernel[1][9] = 9'd35; kernel[1][10] = 9'd15;
   
-    kernel[2][0] = 9'd30;  kernel[2][1] = 9'd50;  kernel[2][2] = 9'd65;  kernel[2][3] = 9'd80;  kernel[2][4] = 9'd90;
-    kernel[2][5] = 9'd90;  kernel[2][6] = 9'd90;  kernel[2][7] = 9'd80;  kernel[2][8] = 9'd65;  kernel[2][9] = 9'd50; kernel[2][10] = 9'd30;
+  //   kernel[2][0] = 9'd30;  kernel[2][1] = 9'd50;  kernel[2][2] = 9'd65;  kernel[2][3] = 9'd80;  kernel[2][4] = 9'd90;
+  //   kernel[2][5] = 9'd90;  kernel[2][6] = 9'd90;  kernel[2][7] = 9'd80;  kernel[2][8] = 9'd65;  kernel[2][9] = 9'd50; kernel[2][10] = 9'd30;
   
-    kernel[3][0] = 9'd40;  kernel[3][1] = 9'd60;  kernel[3][2] = 9'd80;  kernel[3][3] = 9'd95;  kernel[3][4] = 9'd110;
-    kernel[3][5] = 9'd115; kernel[3][6] = 9'd110; kernel[3][7] = 9'd95;  kernel[3][8] = 9'd80;  kernel[3][9] = 9'd60; kernel[3][10] = 9'd40;
+  //   kernel[3][0] = 9'd40;  kernel[3][1] = 9'd60;  kernel[3][2] = 9'd80;  kernel[3][3] = 9'd95;  kernel[3][4] = 9'd110;
+  //   kernel[3][5] = 9'd115; kernel[3][6] = 9'd110; kernel[3][7] = 9'd95;  kernel[3][8] = 9'd80;  kernel[3][9] = 9'd60; kernel[3][10] = 9'd40;
   
-    kernel[4][0] = 9'd45;  kernel[4][1] = 9'd65;  kernel[4][2] = 9'd90;  kernel[4][3] = 9'd110; kernel[4][4] = 9'd125;
-    kernel[4][5] = 9'd135; kernel[4][6] = 9'd125; kernel[4][7] = 9'd110; kernel[4][8] = 9'd90;  kernel[4][9] = 9'd65; kernel[4][10] = 9'd45;
+  //   kernel[4][0] = 9'd45;  kernel[4][1] = 9'd65;  kernel[4][2] = 9'd90;  kernel[4][3] = 9'd110; kernel[4][4] = 9'd125;
+  //   kernel[4][5] = 9'd135; kernel[4][6] = 9'd125; kernel[4][7] = 9'd110; kernel[4][8] = 9'd90;  kernel[4][9] = 9'd65; kernel[4][10] = 9'd45;
   
-    kernel[5][0] = 9'd50;  kernel[5][1] = 9'd70;  kernel[5][2] = 9'd90;  kernel[5][3] = 9'd115; kernel[5][4] = 9'd135;
-    kernel[5][5] = 9'd160; kernel[5][6] = 9'd135; kernel[5][7] = 9'd115; kernel[5][8] = 9'd90;  kernel[5][9] = 9'd70; kernel[5][10] = 9'd50;
+  //   kernel[5][0] = 9'd50;  kernel[5][1] = 9'd70;  kernel[5][2] = 9'd90;  kernel[5][3] = 9'd115; kernel[5][4] = 9'd135;
+  //   kernel[5][5] = 9'd160; kernel[5][6] = 9'd135; kernel[5][7] = 9'd115; kernel[5][8] = 9'd90;  kernel[5][9] = 9'd70; kernel[5][10] = 9'd50;
   
-    kernel[6][0] = 9'd45;  kernel[6][1] = 9'd65;  kernel[6][2] = 9'd90;  kernel[6][3] = 9'd110; kernel[6][4] = 9'd125;
-    kernel[6][5] = 9'd135; kernel[6][6] = 9'd125; kernel[6][7] = 9'd110; kernel[6][8] = 9'd90;  kernel[6][9] = 9'd65; kernel[6][10] = 9'd45;
+  //   kernel[6][0] = 9'd45;  kernel[6][1] = 9'd65;  kernel[6][2] = 9'd90;  kernel[6][3] = 9'd110; kernel[6][4] = 9'd125;
+  //   kernel[6][5] = 9'd135; kernel[6][6] = 9'd125; kernel[6][7] = 9'd110; kernel[6][8] = 9'd90;  kernel[6][9] = 9'd65; kernel[6][10] = 9'd45;
   
-    kernel[7][0] = 9'd40;  kernel[7][1] = 9'd60;  kernel[7][2] = 9'd80;  kernel[7][3] = 9'd95;  kernel[7][4] = 9'd110;
-    kernel[7][5] = 9'd115; kernel[7][6] = 9'd110; kernel[7][7] = 9'd95;  kernel[7][8] = 9'd80;  kernel[7][9] = 9'd60; kernel[7][10] = 9'd40;
+  //   kernel[7][0] = 9'd40;  kernel[7][1] = 9'd60;  kernel[7][2] = 9'd80;  kernel[7][3] = 9'd95;  kernel[7][4] = 9'd110;
+  //   kernel[7][5] = 9'd115; kernel[7][6] = 9'd110; kernel[7][7] = 9'd95;  kernel[7][8] = 9'd80;  kernel[7][9] = 9'd60; kernel[7][10] = 9'd40;
   
-    kernel[8][0] = 9'd30;  kernel[8][1] = 9'd50;  kernel[8][2] = 9'd65;  kernel[8][3] = 9'd80;  kernel[8][4] = 9'd90;
-    kernel[8][5] = 9'd90;  kernel[8][6] = 9'd90;  kernel[8][7] = 9'd80;  kernel[8][8] = 9'd65;  kernel[8][9] = 9'd50; kernel[8][10] = 9'd30;
+  //   kernel[8][0] = 9'd30;  kernel[8][1] = 9'd50;  kernel[8][2] = 9'd65;  kernel[8][3] = 9'd80;  kernel[8][4] = 9'd90;
+  //   kernel[8][5] = 9'd90;  kernel[8][6] = 9'd90;  kernel[8][7] = 9'd80;  kernel[8][8] = 9'd65;  kernel[8][9] = 9'd50; kernel[8][10] = 9'd30;
   
-    kernel[9][0] = 9'd15;  kernel[9][1] = 9'd35;  kernel[9][2] = 9'd50;  kernel[9][3] = 9'd60;  kernel[9][4] = 9'd65;
-    kernel[9][5] = 9'd70;  kernel[9][6] = 9'd65;  kernel[9][7] = 9'd60;  kernel[9][8] = 9'd50;  kernel[9][9] = 9'd35; kernel[9][10] = 9'd15;
+  //   kernel[9][0] = 9'd15;  kernel[9][1] = 9'd35;  kernel[9][2] = 9'd50;  kernel[9][3] = 9'd60;  kernel[9][4] = 9'd65;
+  //   kernel[9][5] = 9'd70;  kernel[9][6] = 9'd65;  kernel[9][7] = 9'd60;  kernel[9][8] = 9'd50;  kernel[9][9] = 9'd35; kernel[9][10] = 9'd15;
   
-    kernel[10][0] = 9'd5;  kernel[10][1] = 9'd15; kernel[10][2] = 9'd30; kernel[10][3] = 9'd40; kernel[10][4] = 9'd45;
-    kernel[10][5] = 9'd50; kernel[10][6] = 9'd45; kernel[10][7] = 9'd40; kernel[10][8] = 9'd30; kernel[10][9] = 9'd15; kernel[10][10] = 9'd5;
-  end
+  //   kernel[10][0] = 9'd5;  kernel[10][1] = 9'd15; kernel[10][2] = 9'd30; kernel[10][3] = 9'd40; kernel[10][4] = 9'd45;
+  //   kernel[10][5] = 9'd50; kernel[10][6] = 9'd45; kernel[10][7] = 9'd40; kernel[10][8] = 9'd30; kernel[10][9] = 9'd15; kernel[10][10] = 9'd5;
+  // end
   
   
 

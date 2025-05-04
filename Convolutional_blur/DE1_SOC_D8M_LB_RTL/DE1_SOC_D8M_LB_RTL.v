@@ -33,10 +33,10 @@ module DE1_SOC_D8M_LB_RTL (
    output  [7:0]  VGA_B,
    output         VGA_CLK,              // 25 MHz derived from MIPI_PIXEL_CLK
    output  [7:0]  VGA_G,
-   output reg     VGA_HS,
+   output     VGA_HS,
    output  [7:0]  VGA_R,
    output         VGA_SYNC_N,
-   output reg     VGA_VS,
+   output     VGA_VS,
 
    //--- GPIO_1, GPIO_1 connect to D8M-GPIO 
    inout          CAMERA_I2C_SCL,
@@ -77,6 +77,12 @@ module DE1_SOC_D8M_LB_RTL (
    wire           LUT_MIPI_PIXEL_HS;
    wire           LUT_MIPI_PIXEL_VS;
    wire    [9:0]  LUT_MIPI_PIXEL_D;
+
+   reg  vga_vs_ni, vga_hs_ni;
+   wire vga_blank_ni;
+   wire    [7:0]  oVGA_R;
+   wire    [7:0]  oVGA_G;
+   wire    [7:0]  oVGA_B;
 
 //=======================================================
 // Main body of code
@@ -142,10 +148,31 @@ RGB_Process p1 (
    .raw_VGA_B(raw_VGA_B),
    .row      (row),
    .col      (col),
-   .o_VGA_R  (VGA_R),
-   .o_VGA_G  (VGA_G),
-   .o_VGA_B  (VGA_B)
+   .o_VGA_R  (oVGA_R),
+   .o_VGA_G  (oVGA_G),
+   .o_VGA_B  (oVGA_B)
 );
+
+conv_kernel # (
+    .LINE_WIDTH(792),
+    .PIXEL_DEPTH(8)
+  )
+  conv_kernel_inst (
+    .clk(VGA_CLK),
+    .en_i(1'b1),
+    .vs_ni(vga_vs_ni),
+    .hs_ni(vga_hs_ni),
+    .blank_ni(vga_blank_ni),
+    .input_R(oVGA_R),
+    .input_G(oVGA_G),
+    .input_B(oVGA_B),
+    .vs_no(VGA_VS),
+    .hs_no(VGA_HS),
+    .blank_no(VGA_BLANK_N),
+    .output_R(VGA_R),
+    .output_G(VGA_G),
+    .output_B(VGA_B)
+  );
 
 //--- VGA interface signals ---
 assign VGA_CLK    = MIPI_PIXEL_CLK;           // GPIO clk
@@ -156,19 +183,19 @@ assign orequest = ((x_count > 13'd0160 && x_count < 13'd0800 ) &&
                   ( y_count > 13'd0045 && y_count < 13'd0525));
 
 // this blanking signal is active low
-assign VGA_BLANK_N = ~((x_count < 13'd0160 ) || ( y_count < 13'd0045 ));
+assign vga_blank_ni = ~((x_count < 13'd0160 ) || ( y_count < 13'd0045 ));
 
 // generate the horizontal and vertical sync signals
 always @(*) begin
    if ((x_count >= 13'd0002 ) && ( x_count <= 13'd0097))
-      VGA_HS = 1'b0;
+      vga_hs_ni = 1'b0;
    else
-      VGA_HS = 1'b1;
+      vga_hs_ni = 1'b1;
 
    if ((y_count >= 13'd0013 ) && ( y_count <= 13'd0014))
-      VGA_VS = 1'b0;
+      vga_vs_ni = 1'b0;
    else
-      VGA_VS = 1'b1;
+      vga_vs_ni = 1'b1;
 end
 
 // calculate col and row as an offset from the x and y counter values
