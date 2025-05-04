@@ -25,9 +25,9 @@ assign luminance = (red_gray + green_gray + blue_gray) >> 8;
 
 always @(*) begin
     if (row <= 13'd479 && col < 13'd639) begin // valid VGA range
-        o_VGA_R = luminance[7:0]; // Same value for grayscale
-        o_VGA_G = luminance[7:0];
-        o_VGA_B = luminance[7:0];
+        o_VGA_R = raw_VGA_R[7:0]; // Same value for grayscale
+        o_VGA_G = raw_VGA_G[7:0];
+        o_VGA_B = raw_VGA_B[7:0];
     end else begin
         // Out-of-range pixels are black
         o_VGA_R = 8'b00000000;

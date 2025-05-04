@@ -1,3 +1,4 @@
+(* multstyle = "logic" *)
 module conv_kernel #(
     parameter LINE_WIDTH = 640,
     parameter PIXEL_DEPTH = 8
@@ -20,11 +21,11 @@ module conv_kernel #(
     output reg [PIXEL_DEPTH-1:0] output_B
 );
 
-localparam SIZE = 3;
-localparam KERNEL_WIDTH = 4;
+localparam SIZE = 11;
+localparam KERNEL_WIDTH = 9;
 localparam LINE_BUFFER_BUS_SIZE = 3*PIXEL_DEPTH + 3; // Extra bits for vs, hs, blank
-localparam SUM_WIDTH = KERNEL_WIDTH + PIXEL_DEPTH + $clog2(SIZE*SIZE) + 3;
-localparam THRESHOLD = 50;
+localparam SUM_WIDTH = KERNEL_WIDTH + PIXEL_DEPTH + $clog2(SIZE*SIZE);
+localparam THRESHOLD = 255;
 
 wire [LINE_BUFFER_BUS_SIZE-1:0] window [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
 
@@ -34,9 +35,19 @@ wire signed[PIXEL_DEPTH:0] window_B [0:SIZE-1][0:SIZE-1]; // Sliding window of p
 
 wire signed [KERNEL_WIDTH-1:0] kernel [0:SIZE-1] [0:SIZE-1];
 
-assign kernel[0][0] = -4'sd1; assign kernel[0][1] = 4'sd0; assign kernel[0][2] = 4'sd1;
-assign kernel[1][0] = -4'sd2; assign kernel[1][1] = 4'sd0; assign kernel[1][2] = 4'sd2;
-assign kernel[2][0] = -4'sd1; assign kernel[2][1] = 4'sd0; assign kernel[2][2] = 4'sd1;
+
+// Assign values to the kernel elements in a compact form
+assign kernel[0][0] = 9'd5, kernel[0][1] = 9'd15, kernel[0][2] = 9'd30, kernel[0][3] = 9'd40, kernel[0][4] = 9'd45, kernel[0][5] = 9'd50, kernel[0][6] = 9'd45, kernel[0][7] = 9'd40, kernel[0][8] = 9'd30, kernel[0][9] = 9'd15, kernel[0][10] = 9'd5;
+assign kernel[1][0] = 9'd15, kernel[1][1] = 9'd35, kernel[1][2] = 9'd50, kernel[1][3] = 9'd60, kernel[1][4] = 9'd65, kernel[1][5] = 9'd70, kernel[1][6] = 9'd65, kernel[1][7] = 9'd60, kernel[1][8] = 9'd50, kernel[1][9] = 9'd35, kernel[1][10] = 9'd15;
+assign kernel[2][0] = 9'd30, kernel[2][1] = 9'd50, kernel[2][2] = 9'd65, kernel[2][3] = 9'd80, kernel[2][4] = 9'd90, kernel[2][5] = 9'd90, kernel[2][6] = 9'd90, kernel[2][7] = 9'd80, kernel[2][8] = 9'd65, kernel[2][9] = 9'd50, kernel[2][10] = 9'd30;
+assign kernel[3][0] = 9'd40, kernel[3][1] = 9'd60, kernel[3][2] = 9'd80, kernel[3][3] = 9'd95, kernel[3][4] = 9'd110, kernel[3][5] = 9'd115, kernel[3][6] = 9'd110, kernel[3][7] = 9'd95, kernel[3][8] = 9'd80, kernel[3][9] = 9'd60, kernel[3][10] = 9'd40;
+assign kernel[4][0] = 9'd45, kernel[4][1] = 9'd65, kernel[4][2] = 9'd90, kernel[4][3] = 9'd110, kernel[4][4] = 9'd125, kernel[4][5] = 9'd135, kernel[4][6] = 9'd125, kernel[4][7] = 9'd110, kernel[4][8] = 9'd90, kernel[4][9] = 9'd65, kernel[4][10] = 9'd45;
+assign kernel[5][0] = 9'd50, kernel[5][1] = 9'd70, kernel[5][2] = 9'd90, kernel[5][3] = 9'd115, kernel[5][4] = 9'd135, kernel[5][5] = 9'd160, kernel[5][6] = 9'd135, kernel[5][7] = 9'd115, kernel[5][8] = 9'd90, kernel[5][9] = 9'd70, kernel[5][10] = 9'd50;
+assign kernel[6][0] = 9'd45, kernel[6][1] = 9'd65, kernel[6][2] = 9'd90, kernel[6][3] = 9'd110, kernel[6][4] = 9'd125, kernel[6][5] = 9'd135, kernel[6][6] = 9'd125, kernel[6][7] = 9'd110, kernel[6][8] = 9'd90, kernel[6][9] = 9'd65, kernel[6][10] = 9'd45;
+assign kernel[7][0] = 9'd40, kernel[7][1] = 9'd60, kernel[7][2] = 9'd80, kernel[7][3] = 9'd95, kernel[7][4] = 9'd110, kernel[7][5] = 9'd115, kernel[7][6] = 9'd110, kernel[7][7] = 9'd95, kernel[7][8] = 9'd80, kernel[7][9] = 9'd60, kernel[7][10] = 9'd40;
+assign kernel[8][0] = 9'd30, kernel[8][1] = 9'd50, kernel[8][2] = 9'd65, kernel[8][3] = 9'd80, kernel[8][4] = 9'd90, kernel[8][5] = 9'd90, kernel[8][6] = 9'd90, kernel[8][7] = 9'd80, kernel[8][8] = 9'd65, kernel[8][9] = 9'd50, kernel[8][10] = 9'd30;
+assign kernel[9][0] = 9'd15, kernel[9][1] = 9'd35, kernel[9][2] = 9'd50, kernel[9][3] = 9'd60, kernel[9][4] = 9'd65, kernel[9][5] = 9'd70, kernel[9][6] = 9'd65, kernel[9][7] = 9'd60, kernel[9][8] = 9'd50, kernel[9][9] = 9'd35, kernel[9][10] = 9'd15;
+assign kernel[10][0] = 9'd5, kernel[10][1] = 9'd15, kernel[10][2] = 9'd30, kernel[10][3] = 9'd40, kernel[10][4] = 9'd45, kernel[10][5] = 9'd50, kernel[10][6] = 9'd45, kernel[10][7] = 9'd40, kernel[10][8] = 9'd30, kernel[10][9] = 9'd15, kernel[10][10] = 9'd5;
 
 integer i, j;
 
@@ -55,13 +66,13 @@ endgenerate
 
 reg signed [SUM_WIDTH-1:0] sum_R, sum_G, sum_B;
 
-wire signed [SUM_WIDTH-5:0] sum_R_slice;
-wire signed [SUM_WIDTH-5:0] sum_G_slice;
-wire signed [SUM_WIDTH-5:0] sum_B_slice;
+wire signed [SUM_WIDTH-11:0] sum_R_slice;
+wire signed [SUM_WIDTH-11:0] sum_G_slice;
+wire signed [SUM_WIDTH-11:0] sum_B_slice;
 
-assign sum_R_slice = sum_R[SUM_WIDTH-1:4];
-assign sum_G_slice = sum_G[SUM_WIDTH-1:4];
-assign sum_B_slice = sum_B[SUM_WIDTH-1:4];
+assign sum_R_slice = sum_R[SUM_WIDTH-1:13];
+assign sum_G_slice = sum_G[SUM_WIDTH-1:13];
+assign sum_B_slice = sum_B[SUM_WIDTH-1:13];
 
 // Assign VS, HS, blank based on middle of buffer
 assign vs_no = window[1][1][LINE_BUFFER_BUS_SIZE-1]; 
@@ -96,28 +107,28 @@ sliding_window # (
         end
     end
 
-        if (sum_R > -THRESHOLD && sum_R < 0) begin
-            output_R = 8'h00;
-        end else if (sum_R > THRESHOLD || sum_R < -THRESHOLD) begin
+        if (sum_R_slice > -THRESHOLD && sum_R_slice < 0) begin
+            output_R = -sum_R_slice;
+        end else if (sum_R_slice > THRESHOLD || sum_R_slice < -THRESHOLD) begin
             output_R = 8'hff;
         end else begin
-            output_R = 8'h00;
+            output_R = sum_R_slice;
         end
 
-        if (sum_G > -THRESHOLD && sum_G < 0) begin
-            output_G = 8'h00;
-        end else if (sum_G > THRESHOLD || sum_G < -THRESHOLD) begin
+        if (sum_G_slice > -THRESHOLD && sum_G_slice < 0) begin
+            output_G = -sum_G_slice;
+        end else if (sum_G_slice > THRESHOLD || sum_G_slice < -THRESHOLD) begin
             output_G = 8'hff;
         end else begin
-            output_G = 8'h00;
+            output_G = sum_G_slice;
         end
 
-        if (sum_B > -THRESHOLD && sum_B < 0) begin
-            output_B = 8'h00;
-        end else if (sum_B > THRESHOLD || sum_B < -THRESHOLD) begin
+        if (sum_B_slice > -THRESHOLD && sum_B_slice < 0) begin
+            output_B = -sum_B_slice;
+        end else if (sum_B_slice > THRESHOLD || sum_B_slice < -THRESHOLD) begin
             output_B = 8'hff;
         end else begin
-            output_B = 8'h00;
+            output_B = sum_B_slice;
         end
     end
 endmodule
