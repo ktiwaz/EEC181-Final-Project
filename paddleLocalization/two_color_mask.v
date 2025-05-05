@@ -1,3 +1,7 @@
+// Takes in the U & V values of a pixel. The pixel values are compared to 
+// two different pairs of (U,V) target values. If the given coordinate is within
+// a rounding threshold, that color's output bit is set to 1.
+
 module two_color_mask #(
 	parameter YUV_WIDTH = 8,
 	parameter THRESH_WIDTH= 10
@@ -60,8 +64,6 @@ always @(*) begin
 end
 
 assign out_valid = in_valid;
-
-
 
 
 endmodule

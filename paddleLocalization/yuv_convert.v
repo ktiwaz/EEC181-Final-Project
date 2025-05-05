@@ -1,3 +1,5 @@
+// Converts RGB pixel values into YUV values (with integer precision)
+
 module yuv_convert(
 	input  [7:0] raw_VGA_R,
 	input  [7:0] raw_VGA_G,
