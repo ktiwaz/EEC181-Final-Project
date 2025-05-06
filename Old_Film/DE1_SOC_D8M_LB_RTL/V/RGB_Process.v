@@ -10,6 +10,7 @@ module RGB_Process(
 	input [5:0]   filter_SW,
 	input         grayscale_SW,
 	input         sepia_SW,
+	input         vignette_SW,
 	input  [3:0]  cursor_speed,
 	input         cursor_select,
 
@@ -23,6 +24,10 @@ reg state_c,     state;
 
 localparam INIT = 1'b0;
 localparam VSYNC = 1'b1;
+
+wire signed [13:0] col_s, row_s;
+assign col_s = {1'b0, col};
+assign row_s = {1'b0, row};
 
 reg [8:0] v_pos0_c, v_pos0;
 reg [9:0] h_pos0_c, h_pos0;
@@ -45,7 +50,7 @@ assign blue_gray  = blue_coeff * raw_VGA_B;
 assign luminance = (red_gray + green_gray + blue_gray) >> 8;
 
 wire [17:0] r_temp, g_temp, b_temp, r_shifted, g_shifted, b_shifted;
-wire [7:0] r_sepia, g_sepia, b_sepia;
+wire [7:0] r_sepia, g_sepia, b_sepia, r_vig, g_vig, b_vig;
 
 // Integer sepia coefficients, scaled by 256
 assign r_temp = (101 * raw_VGA_R) + (197 * raw_VGA_G) + ( 48 * raw_VGA_B);
@@ -69,11 +74,32 @@ wire draw;
 wire raw_VGA_Blob;
 
 // assign raw_VGA_Blob = (row >=rand_o[2] - 10'd2) && (row<=rand_o[2] + 10'd2) && (col>=rand_o[1] - 10'd2)&& (col<=rand_o[1] + 10'd2) && (noise > 300);
-wire signed [9:0] dx = col - rand_o[1];
-wire signed [9:0] dy = row - rand_o[2];
-wire [9:0] dist2 = dx*dx + dy*dy;
+wire signed [9:0] dx = col_s - rand_o[1];
+wire signed [9:0] dy = row_s - rand_o[2];
+wire [17:0] dist2 = dx*dx + dy*dy;
 assign raw_VGA_Blob = (dist2 < rand_o[0][3:0]) && (noise > 300);
 
+wire signed [9:0] dxx = col_s - 13'd320;
+wire signed [9:0] dyy = row_s - 13'd240;
+
+wire [15:0] r_vig_temp, g_vig_temp, b_vig_temp;
+
+wire [17:0] d2 = dxx*dxx + dyy*dyy;
+
+wire [7:0] weight;
+
+LUT i_LUT (
+	.d2     ( d2[17:9] ),
+	.weight ( weight)
+);
+
+assign r_vig_temp = (r_sepia * weight);
+assign g_vig_temp = (g_sepia * weight);
+assign b_vig_temp = (b_sepia * weight);
+
+assign r_vig = r_vig_temp >> 8;
+assign g_vig = g_vig_temp >> 8;
+assign b_vig = b_vig_temp >> 8;
 
 
 localparam V_HEIGHT = 5;
@@ -145,6 +171,11 @@ always @(*)begin
 			o_VGA_R = r_sepia[7:0]; // Same value for grayscale
         	o_VGA_G = g_sepia[7:0];
         	o_VGA_B = b_sepia[7:0];
+		end
+		if (vignette_SW) begin
+			o_VGA_R = r_vig[7:0]; // Same value for grayscale
+        	o_VGA_G = g_vig[7:0];
+        	o_VGA_B = b_vig[7:0];
 		end
 	 end
 

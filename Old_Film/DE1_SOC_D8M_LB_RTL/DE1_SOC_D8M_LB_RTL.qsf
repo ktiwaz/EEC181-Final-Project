@@ -306,6 +306,7 @@ set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 
 
 
+set_global_assignment -name VERILOG_FILE V/LUT.v
 set_global_assignment -name VERILOG_FILE V/RNG.v
 set_global_assignment -name VERILOG_FILE V/video_pll/video_pll.v
 set_global_assignment -name QIP_FILE V/video_pll/video_pll.qip

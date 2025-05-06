@@ -67,7 +67,12 @@ module DE1_SOC_D8M_LB_RTL (
    wire    [7:0]  sCCD_G;
    wire    [7:0]  sCCD_B; 
    wire   [12:0]  x_count,col; 
-   wire   [12:0]  y_count,row; 
+   wire   [12:0]  y_count,row;
+
+   wire signed [13:0] col_s, row_s;
+   assign col_s = {1'b0, col};
+   assign row_s = {1'b0, row};
+
    wire           I2C_RELEASE ;  
    wire           CAMERA_I2C_SCL_MIPI; 
    wire           CAMERA_I2C_SCL_AF;
@@ -150,6 +155,7 @@ RGB_Process p1 (
   .filter_SW     (SW[7:2]),
   .grayscale_SW  (SW[8]),
   .sepia_SW      (SW[9]),
+  .vignette_SW   (SW[1]),
   .cursor_speed  (~(KEY[3:0])),
   .o_VGA_R  (VGA_R),
   .o_VGA_G  (VGA_G),
