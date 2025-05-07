@@ -4,7 +4,7 @@
 
 module two_color_mask #(
 	parameter YUV_WIDTH = 8,
-	parameter THRESH_WIDTH= 10
+	parameter THRESH_WIDTH= 8
 )(
 	input signed [YUV_WIDTH-1:0] U,
 	input signed [YUV_WIDTH-1:0] V,

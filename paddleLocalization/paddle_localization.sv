@@ -38,12 +38,36 @@ assign vThresh = V_THRESH;
 yuv_convert yuv(.raw_VGA_R(input_R), .raw_VGA_G(input_G), .raw_VGA_B(input_B),
 				.Y(Y), .U(U), .V(V));
 
-two_color_mask c_mask(.U(U), .V(V), .uTarget1(uTarget1), .vTarget1(vTarget1), .uThresh1(5), .vThresh1(5),
+// TODO: Define img_in_valid (should be based on the row number coming in)
+
+two_color_mask c_mask(.U(U), .V(V), .in_valid(img_in_valid),
+						.uTarget1(uTarget1), .vTarget1(vTarget1), .uThresh1(5), .vThresh1(5),
 									.uTarget2(uTarget2), .vTarget2(vTarget2), .uThresh2(5), .vThresh2(5),
 									.colorEncoding(cEncoded), .outValid(cEncodedValid));
 
 
+localparam DENOISE_WIDTH = 5;
+wire [2:0] denoise_in [0:DENOISE_WIDTH-1][0:DENOISE_WIDTH-1];
+wire frameCode; // toggles between 0 and 1 to denote the arrival of a new frame (should function as a valid bit)
 
+wire [2:0] denoise_out;
+wire denoise_out_valid;
+
+sliding_window #(.NUMBER_OF_LINES(DENOISE_WIDTH), .WIDTH(LINE_WIDTH), .BUS_SIZE(3)) two_color_pre_noise_inst(
+	.clock(clk),
+	.EN(cEncodedValid),
+	.data({frameCode, cEncoded}),
+	.dataout(denoise_in)
+);
+
+denoise_color_masked_image #(.N_SIZE(DENOISE_WIDTH), .COLORS(2), .N_THRESHOLD(5)) denoiser_inst(
+	.in_img(denoise_in),
+	.denoised_img(denoise_out),
+	.out_valid(denoise_out_valid)
+);
+
+//////////////////////
+// Sobel component
 
 localparam KERNEL_WIDTH = 8;
 localparam K_SIZE = 3;
