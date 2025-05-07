@@ -12,7 +12,7 @@ module edge_color_mask_merge #(
 );
 
 localparam SUM_WIDTH = $clog2(M_SIZE*M_SIZE);
-localparam DELAY_AMOUNT = (M_SIZE / 2) + 1;
+localparam CENTER = (M_SIZE / 2);
 
 reg [SUM_WIDTH-1:0] neighborhood_count[COLORS-1:0];
 
@@ -52,5 +52,7 @@ always @(*) begin
 	end
 
 end
+
+assign out_valid = color_masked_img[CENTER][CENTER][COLORS];
 
 endmodule

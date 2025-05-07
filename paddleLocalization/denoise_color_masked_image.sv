@@ -10,17 +10,18 @@ module denoise_color_masked_image #(
 )(
 	input [COLORS:0] in_img [0:N_SIZE-1][0:N_SIZE-1],
 	input clk,
-	output reg [COLORS:0] out_img,
-	output out_valid
+	output [COLORS:0] out_img,
+	output reg out_valid
 );
 
 localparam SUM_WIDTH = $clog2(N_SIZE*N_SIZE);
 
 reg [SUM_WIDTH-1:0] neighborhood_count[COLORS-1:0]; 
 
+localparam IN_IMG_CENTER = N_SIZE / 2;
 
 wire [COLORS:0] in_img_center;
-assign in_img_center = in_img[N_SIZE/2][N_SIZE/2];
+assign in_img_center = in_img[IN_IMG_CENTER][IN_IMG_CENTER];
 
 reg [COLORS:0] denoised_img;
 
@@ -66,34 +67,10 @@ always @(*) begin
 	end
 
 	denoised_img[COLORS] = in_img_center[COLORS];
+	out_valid = in_img_center[COLORS];
 end
 
-// Delays output so that the results from a pixel occurs exactly SIZE/2 + 1 rows after the center pixel enters
-// must be used in conjunction with a sliding window instantiation to work (will integrate here later)
-localparam OUT_DELAY_CYCLES = (N_SIZE / 2) + 1;
-
-reg [COLORS:0] r_denoised_img[0:OUT_DELAY_CYCLES-1];
-reg r_denoised_img_valid[0:OUT_DELAY_CYCLES-1];
-
-
-always @(posedge clk) begin
-	r_denoised_img[0] <= denoised_img;
-	r_denoised_img_valid[0] <= in_img_center[COLORS];
-end
-
-
-genvar d;
-generate
-for (d = 1; d < OUT_DELAY_CYCLES - 1; d = d + 1) begin : delay_reg
-	always @(posedge clk) begin
-		r_denoised_img[d] <= r_denoised_img[d-1];
-		r_denoised_img_valid[d] <= r_denoised_img_valid[d-1];
-	end
-end
-endgenerate
-
-assign img_out = r_denoised_img[OUT_DELAY_CYCLES - 1];
-assign out_valid = r_denoised_img_valid[OUT_DELAY_CYCLES - 1];
+assign out_img = denoised_img;
 
 
 endmodule

@@ -44,7 +44,7 @@ module tb_edge_color_mask_merge;
     .valid(valid)
   );
 
-reg [2:0] encoded_color_masked_img;
+reg [2:0] encoded_color_masked_img, d_encoded_color_masked_img;
 reg [1:0] edge_img, edge_img_buff;
 
 always @(*) begin
@@ -74,16 +74,33 @@ end
 
 wire [COLORS:0] denoise_in [0:DENOISE_WIDTH-1][0:DENOISE_WIDTH-1];
 wire [COLORS:0] denoise_out, d_denoise_out;
-wire denoise_out_valid;
+wire denoise_out_valid, d_denoise_out_valid;
 
 
 
 // DENOISER
+localparam DENOISE_DELAY_AMOUNT = (DENOISE_WIDTH / 2);
+wire d_valid;
+
+simple_line_buffer #(.NUMBER_OF_LINES(1), .WIDTH(DENOISE_DELAY_AMOUNT), .BUS_SIZE(COLORS+1)) denoise_in_regs(
+  .clock(clk),
+  .EN(1'b1),
+  .data(encoded_color_masked_img),
+  .dataout(d_encoded_color_masked_img)
+);
+
+simple_line_buffer #(.NUMBER_OF_LINES(1), .WIDTH(DENOISE_DELAY_AMOUNT), .BUS_SIZE(1)) denoise_in_valid_regs(
+  .clock(clk),
+  .EN(1'b1),
+  .data(valid),
+  .dataout(d_valid)
+);
+
 
 sliding_window #(.NUMBER_OF_LINES(DENOISE_WIDTH), .WIDTH(WIDTH), .BUS_SIZE(COLORS+1)) buffer_inst(
 	.clock(clk),
-	.EN(valid),
-	.data(encoded_color_masked_img),
+	.EN(d_valid),
+	.data(d_encoded_color_masked_img),
 	.dataout(denoise_in)
 );
 
@@ -103,7 +120,7 @@ denoise_color_masked_image #(
 
 // EDGE (delay this) will be a different value when convolution is accounted for
 
-localparam MERGE_DELAY_AMOUNT = (MERGE_WIDTH / 2) + 1;
+localparam MERGE_DELAY_AMOUNT = (MERGE_WIDTH / 2);
 
 simple_line_buffer #(
   .NUMBER_OF_LINES(MERGE_DELAY_AMOUNT + DENOISE_WIDTH),
