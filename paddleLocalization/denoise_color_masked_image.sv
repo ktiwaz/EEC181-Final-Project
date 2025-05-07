@@ -10,20 +10,19 @@ module denoise_color_masked_image #(
 )(
 	input [COLORS:0] in_img [0:N_SIZE-1][0:N_SIZE-1],
 	input clk,
-	output reg [COLORS:0] denoised_img,
+	output reg [COLORS:0] out_img,
 	output out_valid
 );
 
 localparam SUM_WIDTH = $clog2(N_SIZE*N_SIZE);
 
-reg [COLORS:0] r_in_img [0:N_SIZE-1][0:N_SIZE-1];
-
 reg [SUM_WIDTH-1:0] neighborhood_count[COLORS-1:0]; 
 
-wire [COLORS:0] in_img_center;
 
+wire [COLORS:0] in_img_center;
 assign in_img_center = in_img[N_SIZE/2][N_SIZE/2];
 
+reg [COLORS:0] denoised_img;
 
 integer i, j;
 //genvar c;
@@ -69,8 +68,32 @@ always @(*) begin
 	denoised_img[COLORS] = in_img_center[COLORS];
 end
 
-// Sets the valid bit in the data: data is valid if the center pixel in the array is a valid img pixel
+// Delays output so that the results from a pixel occurs exactly SIZE/2 + 1 rows after the center pixel enters
+// must be used in conjunction with a sliding window instantiation to work (will integrate here later)
+localparam OUT_DELAY_CYCLES = (N_SIZE / 2) + 1;
 
-assign out_valid = in_img_center[COLORS];
+reg [COLORS:0] r_denoised_img[0:OUT_DELAY_CYCLES-1];
+reg r_denoised_img_valid[0:OUT_DELAY_CYCLES-1];
+
+
+always @(posedge clk) begin
+	r_denoised_img[0] <= denoised_img;
+	r_denoised_img_valid[0] <= in_img_center[COLORS];
+end
+
+
+genvar d;
+generate
+for (d = 1; d < OUT_DELAY_CYCLES - 1; d = d + 1) begin : delay_reg
+	always @(posedge clk) begin
+		r_denoised_img[d] <= r_denoised_img[d-1];
+		r_denoised_img_valid[d] <= r_denoised_img_valid[d-1];
+	end
+end
+endgenerate
+
+assign img_out = r_denoised_img[OUT_DELAY_CYCLES - 1];
+assign out_valid = r_denoised_img_valid[OUT_DELAY_CYCLES - 1];
+
 
 endmodule

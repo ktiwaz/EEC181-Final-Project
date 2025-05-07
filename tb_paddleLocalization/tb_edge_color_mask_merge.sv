@@ -73,7 +73,7 @@ end
 
 
 wire [COLORS:0] denoise_in [0:DENOISE_WIDTH-1][0:DENOISE_WIDTH-1];
-wire [COLORS:0] denoise_out;
+wire [COLORS:0] denoise_out, d_denoise_out;
 wire denoise_out_valid;
 
 
@@ -96,20 +96,22 @@ denoise_color_masked_image #(
 ) UUT_denoiser(
   .clk(clk),
 	.in_img(denoise_in),
-  .denoised_img(denoise_out),
+  .out_img(denoise_out),
 	.out_valid(denoise_out_valid)
 );
 
 
-// EDGE (delay this)
+// EDGE (delay this) will be a different value when convolution is accounted for
+
+localparam MERGE_DELAY_AMOUNT = (MERGE_WIDTH / 2) + 1;
 
 simple_line_buffer #(
-  .NUMBER_OF_LINES(DENOISE_WIDTH),
+  .NUMBER_OF_LINES(MERGE_DELAY_AMOUNT + DENOISE_WIDTH),
   .WIDTH(WIDTH),
   .BUS_SIZE(2)
-) edgeBuff (
+) edge_line_buffer (
   .clock(clk),
-  .EN(valid),
+  .EN(1'b1),
   .data(edge_img),
   .dataout(edge_img_buff)
 );
@@ -117,21 +119,40 @@ simple_line_buffer #(
 
 // MERGE
 
+
+
 wire [COLORS:0] merge_in [0:MERGE_WIDTH-1][0:MERGE_WIDTH-1];
 wire merge_out, merge_out_valid;
 
+
+simple_line_buffer #(.NUMBER_OF_LINES(1), .WIDTH(MERGE_DELAY_AMOUNT), .BUS_SIZE(3)) color_merge_regs(
+  .clock(clk),
+  .EN(1'b1),
+  .data(denoise_out),
+  .dataout(d_denoise_out)
+);
+
+simple_line_buffer #(.NUMBER_OF_LINES(1), .WIDTH(MERGE_DELAY_AMOUNT), .BUS_SIZE(1)) color_merge_valid_regs(
+  .clock(clk),
+  .EN(1'b1),
+  .data(denoise_out_valid),
+  .dataout(d_denoise_out_valid)
+);
+
+
 sliding_window #(.NUMBER_OF_LINES(MERGE_WIDTH), .WIDTH(WIDTH), .BUS_SIZE(3)) color_merged_buff(
 	.clock(clk),
-	.EN(denoise_out_valid),
-	.data(denoise_out),
+	.EN(d_denoise_out_valid),
+	.data(d_denoise_out),
 	.dataout(merge_in)
 );
 
 // switch threshold to 2
-edge_color_mask_merge #(.M_SIZE(MERGE_WIDTH), .COLORS(2), .M_THRESHOLD(5)) merge_inst(
-	.color_masked_img(merge_in),
-  .edgeDataIn(edge_img_buff),
-	.edgeDataOut(merge_out),
+edge_color_mask_merge #(.M_SIZE(MERGE_WIDTH), .COLORS(2), .M_THRESHOLD(2)) merge_inst(
+	.clk(clk),
+  .color_masked_img(merge_in),
+  .in_edge_data(edge_img_buff),
+	.out_edge_data(merge_out),
 	.out_valid(merge_out_valid)
 );
 
