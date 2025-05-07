@@ -136,8 +136,6 @@ simple_line_buffer #(
 
 // MERGE
 
-
-
 wire [COLORS:0] merge_in [0:MERGE_WIDTH-1][0:MERGE_WIDTH-1];
 wire merge_out, merge_out_valid;
 
