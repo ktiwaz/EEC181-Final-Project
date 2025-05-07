@@ -85,6 +85,7 @@ module DE1_SOC_D8M_LB_RTL (
 	wire [8:0] U_out;
 	wire [8:0] V_out;
 	wire [4:0] Ctr;
+	wire [1:0] State;
 
 //=======================================================
 // Main body of code
@@ -147,26 +148,29 @@ RGB_Process p1 (
    .raw_VGA_R (raw_VGA_R),
    .raw_VGA_G (raw_VGA_G),
    .raw_VGA_B (raw_VGA_B),
-	.select (SW[1]),
-	.direct   (KEY[3:0]),
-	.clk   (CLOCK_50),
-	.vga_clk (VGA_CLK),
+	.select    (SW[1]),
+	.direct    (KEY[3:0]),
+	.clk       (CLOCK_50),
+	.vga_clk   (VGA_CLK),
 	.VGA_VS    (VGA_VS),
    .row       (row),
    .col       (col),
 	.reset_n   (RESET_N),
 	.filter_SW (SW[7:2]),
-	.grey      (SW[8]),
+	.start_C2  (SW[9]),
    .o_VGA_R   (VGA_R),
    .o_VGA_G   (VGA_G),
    .o_VGA_B   (VGA_B),
 	.Y_out     (Y_out),
 	.U_out     (U_out),
 	.V_out     (V_out),
-	.start     (SW[9]),
-	.Ctr       (Ctr)
+	.start_C1  (SW[8]),
+	.Ctr       (Ctr),
+	.State     (State)
 );
 
+
+assign LEDR[6:5] = State;
 assign LEDR[4:0] = Ctr;
 assign LEDR[8] = U_out[8];
 assign LEDR[9] = V_out[8];

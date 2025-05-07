@@ -13,7 +13,8 @@ module calibration(
 	output [7:0] Y_out,
 	output signed [8:0] U_out,
 	output signed [8:0] V_out,
-	output [4:0] Ctr
+	output [4:0] Ctr,
+	output [1:0] State
 );
 
 reg [7:0]  accum_counter, accum_counter_c;
@@ -36,6 +37,7 @@ assign V_out = (rgb_yuv == 1'b1) ? B : V[8:0];
 reg [1:0] S,next_S;
 reg [4:0] C, C_c;
 
+assign State = S;
 assign Ctr = C;
 
 //Grey Scale
@@ -56,8 +58,8 @@ localparam c2_size = 10'd9;
  
 always@(posedge clk) begin
 	if(~reset_n)begin
-		C <= 1'b0;
-		S <= START;
+		C <= 5'b0;
+		S <= 2'b00;
 		R_accum <= 14'b0;
 		G_accum <= 14'b0;
 		B_accum <= 14'b0;
@@ -132,11 +134,11 @@ always@(*) begin
 		end
 		CALCULATE_Y: begin
 			C_c = C;
-			next_S = ACCUMULATE;
+
 			R_accum_c = R_accum;
 			G_accum_c = G_accum;
 			B_accum_c = B_accum;
-			accum_counter_c = accum_counter;
+			accum_counter_c = 8'b0;
 			Y_c = Y;
 			U_c = U;
 			V_c = V;
@@ -150,8 +152,14 @@ always@(*) begin
 		end
 		
 		CALCULATE_UV: begin
-			C_c = C + 1;
-			next_S = ACCUMULATE;
+			if(start)begin
+				next_S = CALCULATE_UV;
+			end
+			else begin
+				next_S = START;
+			end
+			C_c = C + 5'b1;
+
 			R_accum_c = R_accum;
 			G_accum_c = G_accum;
 			B_accum_c = B_accum;
@@ -162,9 +170,8 @@ always@(*) begin
 
 			U_c = (U_code * ((B_accum >> 6) - Y))>>8;
 			V_c = (V_code * ((R_accum >> 6) - Y))>>8;
-
-			next_S = START;
 		end
+		
 	endcase
 end
 
