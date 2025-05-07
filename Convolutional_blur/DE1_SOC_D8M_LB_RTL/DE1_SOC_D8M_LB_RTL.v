@@ -153,25 +153,28 @@ RGB_Process p1 (
    .o_VGA_B  (oVGA_B)
 );
 
-conv_kernel # (
+wire [7:0] outputEdge;
+assign VGA_R = outputEdge;
+assign VGA_G = outputEdge;
+assign VGA_B = outputEdge;
+
+conv_kernel_sobel # (
+    .SIZE(3),
     .LINE_WIDTH(792),
-    .PIXEL_DEPTH(8)
+    .PIXEL_DEPTH(8),
+    .KERNEL_WIDTH(4)
   )
-  conv_kernel_inst (
+  conv_kernel_sobel_inst (
     .clk(VGA_CLK),
-    .en_i(1'b1),
     .vs_ni(vga_vs_ni),
     .hs_ni(vga_hs_ni),
     .blank_ni(vga_blank_ni),
-    .input_R(oVGA_R),
-    .input_G(oVGA_G),
-    .input_B(oVGA_B),
+    .inputLUM(oVGA_R),
+	 .SW(SW),
     .vs_no(VGA_VS),
     .hs_no(VGA_HS),
     .blank_no(VGA_BLANK_N),
-    .output_R(VGA_R),
-    .output_G(VGA_G),
-    .output_B(VGA_B)
+    .outputEdge(outputEdge)
   );
 
 //--- VGA interface signals ---
