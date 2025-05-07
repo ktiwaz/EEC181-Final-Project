@@ -1,28 +1,27 @@
 module paddle_localization #(
 	parameter PIXEL_DEPTH = 8,
-	parameter THRESH_WIDTH = 6
+	parameter THRESH_WIDTH = 8,
+	parameter LINE_WIDTH = 640
 ) (
 	input [PIXEL_DEPTH-1:0] input_R,
     input [PIXEL_DEPTH-1:0] input_G,
     input [PIXEL_DEPTH-1:0] input_B,
 
-	input [THRESH_WIDTH-1:0] uTarget1,
-	input [THRESH_WIDTH-1:0] vTarget1,
-	input [THRESH_WIDTH-1:0] uTarget2,
-	input [THRESH_WIDTH-1:0] vTarget2,
+	input signed [THRESH_WIDTH-1:0] uTarget1,
+	input signed [THRESH_WIDTH-1:0] vTarget1,
+	input signed [THRESH_WIDTH-1:0] uTarget2,
+	input signed [THRESH_WIDTH-1:0] vTarget2,
 
-	input [10:0] row,
-	input [11:0] col
+	input [12:0] row,
+	input [12:0] col
 
 );
 
 // Parameter Definitions
-localparam U_THRESH = 3'd5; // doesn't do anything right now
-localparam V_THRESH = 3'd5;
 
 
 // Wire Declarations
-wire [7:0] Y;  // this might be scuffed (maybe not anymore)
+wire [7:0] Y;
 wire signed [8:0] U, V;
 
 wire [THRESH_WIDTH-1:0] uThresh, vThresh;
@@ -42,8 +41,8 @@ yuv_convert yuv(.raw_VGA_R(input_R), .raw_VGA_G(input_G), .raw_VGA_B(input_B),
 
 two_color_mask c_mask(.U(U), .V(V), .in_valid(img_in_valid),
 						.uTarget1(uTarget1), .vTarget1(vTarget1), .uThresh1(5), .vThresh1(5),
-									.uTarget2(uTarget2), .vTarget2(vTarget2), .uThresh2(5), .vThresh2(5),
-									.colorEncoding(cEncoded), .outValid(cEncodedValid));
+						.uTarget2(uTarget2), .vTarget2(vTarget2), .uThresh2(5), .vThresh2(5),
+						.colorEncoding(cEncoded), .outValid(cEncodedValid));
 
 
 localparam DENOISE_WIDTH = 5;
@@ -94,6 +93,27 @@ conv_kernel_sobel #(.SIZE(K_SIZE), .LINE_WIDTH(640), .PIXEL_DEPTH(8), .KERNEL_WI
  					.valid_i(conv_valid_i), .inputLUM(Y), .kernel(w_kernel), .valid_o(conv_valid_o), .outputE(edgeData));
 
 
+
+// Merge component
+
+
+localparam MERGE_WIDTH = 11;
+
+wire [2:0] merge_in [0:MERGE_WIDTH-1][0:MERGE_WIDTH-1];
+
+
+sliding_window #(.NUMBER_OF_LINES(MERGE_WIDTH), .WIDTH(LINE_WIDTH), .BUS_SIZE(3)) color_merged_inst(
+	.clock(clk),
+	.EN(denoise_out_valid),
+	.data({denoise_out_valid, denoise_out}),
+	.dataout(merge_in)
+);
+
+edge_color_mask_merge #(.M_SIZE(MERGE_WIDTH), .COLORS(2), .M_THRESHOLD(5)) merge_inst(
+	.color_masked_img(merge_in),
+	.denoised_img(denoise_out),
+	.out_valid(denoise_out_valid)
+);
 
 
 
