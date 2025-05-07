@@ -24,7 +24,6 @@ module tb_paddle_localization_demo;
   wire [7:0] red_out, green_out, blue_out;
   wire out_valid;
   
-
   // Instantiate the image_loader module
   image_loader #(
     .WIDTH(WIDTH),
