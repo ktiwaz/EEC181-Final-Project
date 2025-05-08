@@ -81,9 +81,9 @@ module DE1_SOC_D8M_LB_RTL (
 	wire [9:0] rand;
 	wire sync;
 	
-	wire [7:0] Y_out;
-	wire [8:0] U_out;
-	wire [8:0] V_out;
+	wire signed [13:0] H_out;
+	wire [7:0] S_out;
+	wire [7:0] V_out;
 	wire [4:0] Ctr;
 	wire [1:0] State;
 
@@ -161,19 +161,16 @@ RGB_Process p1 (
    .o_VGA_R   (VGA_R),
    .o_VGA_G   (VGA_G),
    .o_VGA_B   (VGA_B),
-	.Y_out     (Y_out),
-	.U_out     (U_out),
+	.H_out     (H_out),
+	.S_out     (S_out),
 	.V_out     (V_out),
 	.start_C1  (SW[8]),
-	.Ctr       (Ctr),
-	.State     (State)
+	.Ctr       (Ctr)
 );
 
 
-assign LEDR[6:5] = State;
 assign LEDR[4:0] = Ctr;
-assign LEDR[8] = U_out[8];
-assign LEDR[9] = V_out[8];
+
 
 wire [7:0] HEX_0, HEX_1, HEX_2, HEX_3, HEX_4, HEX_5;
 
@@ -186,20 +183,20 @@ assign HEX5 = HEX_5[6:0];
 
 Hex27Seg H0(
 	.HEX(HEX_0),
-	.num(Y_out[3:0])
+	.num(H_out[3:0])
 );
 Hex27Seg H1(
 	.HEX(HEX_1),
-	.num(Y_out[7:4])
+	.num(H_out[7:4])
 );
 
 Hex27Seg H2(
 	.HEX(HEX_2),
-	.num(U_out[3:0])
+	.num(S_out[3:0])
 );
 Hex27Seg H3(
 	.HEX(HEX_3),
-	.num(U_out[7:4])
+	.num(S_out[7:4])
 );
 
 Hex27Seg H4(
