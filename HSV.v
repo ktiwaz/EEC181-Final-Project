@@ -36,10 +36,10 @@ module HSV(
 		  H = (G - B);
        end
        else if (max == G) begin
-            H = (B - R + diff<<1);
+            H = ((diff<<1) + B - R);
        end
        else if (max == B) begin
-            H = (R - G + diff<<2);
+            H = ((diff<<2) + R - G);
        end
     end
 endmodule

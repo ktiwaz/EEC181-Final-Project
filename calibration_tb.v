@@ -17,6 +17,7 @@ module calibration_tb;
         .clk(clk),
         .reset_n(reset_n),
         .start(start),
+        .rgb_yuv(1'b0),
         .row(row),
         .col(col),
         .c2_row(c2_row),
@@ -85,11 +86,15 @@ end
         // Allow some cycles to pass and observe output values
         #20000;
         start = 0;
-        // #2000;
-        // start = 1;
-        // #200;
-        // start = 0;
-        // #2000;
+        #2000;
+        start = 1;
+        #4000;
+        start = 0;
+        #2000;
+        start = 1;
+        #2000;
+        start = 0;
+        #2000;
         // Display accumulated results
         $display("Accumulated R: %d, G: %d, B: %d", uut.R_accum, uut.G_accum, uut.B_accum);
         $display("U_out: %d, V_out: %d, Ctr: %d", U_out, V_out, Ctr);

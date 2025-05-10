@@ -10,11 +10,11 @@ module calibration(
 	input  [9:0] c2_row,
 	input  [9:0] c2_col,
 	input  rgb_yuv,
-	output [7:0] Y_out,
+	output        [7:0] Y_out,
 	output signed [8:0] U_out,
 	output signed [8:0] V_out,
-	output [4:0] Ctr,
-	output [1:0] State
+	output        [4:0] Ctr,
+	output        [1:0] State
 );
 
 reg [7:0]  accum_counter, accum_counter_c;
@@ -134,7 +134,6 @@ always@(*) begin
 		end
 		CALCULATE_Y: begin
 			C_c = C;
-
 			R_accum_c = R_accum;
 			G_accum_c = G_accum;
 			B_accum_c = B_accum;

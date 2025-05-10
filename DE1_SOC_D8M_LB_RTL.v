@@ -169,8 +169,8 @@ RGB_Process p1 (
 );
 
 
-assign LEDR[4:0] = Ctr;
-
+//assign LEDR[4:0] = Ctr;
+assign LEDR[7:0] = V_out[7:0];
 
 wire [7:0] HEX_0, HEX_1, HEX_2, HEX_3, HEX_4, HEX_5;
 
@@ -192,20 +192,20 @@ Hex27Seg H1(
 
 Hex27Seg H2(
 	.HEX(HEX_2),
-	.num(S_out[3:0])
+	.num(H_out[11:8])
 );
 Hex27Seg H3(
 	.HEX(HEX_3),
-	.num(S_out[7:4])
+	.num(H_out[13:12])
 );
 
 Hex27Seg H4(
 	.HEX(HEX_4),
-	.num(V_out[3:0])
+	.num(S_out[3:0])
 );
 Hex27Seg H5(
 	.HEX(HEX_5),
-	.num(V_out[7:4])
+	.num(S_out[7:4])
 );
 
 //--- VGA interface signals ---

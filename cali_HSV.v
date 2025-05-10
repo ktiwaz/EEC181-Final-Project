@@ -195,9 +195,9 @@ always@(*) begin
 			if (max == R) 
 				H_c = (G - B);
 			else if (max == G) 
-				H_c = (B - R) + 2*(max - min);
+				H_c = (B - R) + ((max<<1) - (min<<1));
 			else if (max == B)
-				H_c = (R - G) + 4*(max - min);
+				H_c = (R - G) + ((max<<2) - (min<<2));
 				
 			if(start)begin
 				next_S = CALCULATE_HSV;
