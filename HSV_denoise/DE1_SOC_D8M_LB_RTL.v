@@ -166,7 +166,7 @@ conv_kernel # (
     .hs_ni(vga_hs_ni),
     .blank_ni(vga_blank_ni),
     .color_i(o_color),
-    .filter_en(SW[2]),
+    .filter_en(SW[1]),
     .threshold_sw(SW[9:6]),
     .input_R(oVGA_R),
     .input_G(oVGA_G),

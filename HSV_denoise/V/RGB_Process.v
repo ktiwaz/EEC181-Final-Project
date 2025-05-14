@@ -31,8 +31,12 @@ wire [13:0] H_u,H_d;
 
 // H, S=diff, V=max
 
-assign H_u = {6'b0,S_o<<1} + {6'b0,S_o>>2}; //3.5
-assign H_d = {6'b0,S_o} + {6'b0,S_o>>1} + {6'b0,S_o>>2}; //0.75
+assign H_u1 = {6'b0,S_o>>2}; //0.25
+assign H_d1 = 0; //1.75	
+
+assign H_u2 = {6'b0,S_o<<2} + {6'b0,S_o<<1}; //6
+assign H_d2 = {6'b0,S_o<<1} + {6'b0,S_o} + {6'b0,S_o >> 1} + {6'b0,S_o >> 2}; //5.75
+
 assign V_thresh = V_o>>2;
 
 					// else begin
@@ -49,11 +53,11 @@ always @(*)begin
 			o_VGA_B = raw_VGA_B;
 			o_VGA_G = raw_VGA_G;
 
-			if((H_o<H_d)||(H_o>H_u)||(S_o < V_thresh))begin
-				o_color = 1'b0;
+			if((H_o>H_d1)&&(H_o<H_u1)&&(H_o>H_d2)&&(H_o<H_u2)&&(S_o>V_thresh))begin
+				o_color = 1'b1;
 
 			end	else begin
-				o_color = 1'b1;
+				o_color = 1'b0;
 			end
 
 		end else begin // Out of range

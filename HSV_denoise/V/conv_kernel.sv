@@ -23,8 +23,8 @@ module conv_kernel #(
     output reg [PIXEL_DEPTH-1:0] output_B
 );
 
-localparam SIZE = 3;
-localparam KERNEL_WIDTH = 4;
+localparam SIZE = 5;
+localparam CENTER = SIZE / 2;
 localparam LINE_BUFFER_BUS_SIZE = 3*PIXEL_DEPTH + 4; // Extra bits for vs, hs, blank, color
 
 wire [LINE_BUFFER_BUS_SIZE-1:0] window [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
@@ -32,8 +32,6 @@ wire [LINE_BUFFER_BUS_SIZE-1:0] window [0:SIZE-1][0:SIZE-1]; // Sliding window o
 wire signed[PIXEL_DEPTH:0] window_R [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
 wire signed[PIXEL_DEPTH:0] window_G [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
 wire signed[PIXEL_DEPTH:0] window_B [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
-
-integer i, j;
 
 genvar iii, jjj;
 
@@ -48,20 +46,20 @@ generate
     end
 endgenerate
 
-wire in_img [0:2][0:2];
+wire in_img [0:SIZE-1][0:SIZE-1];
 wire out_img;
 generate
-    for (iii = 0; iii < 3; iii = iii + 1) begin : row_loop
-        for (jjj = 0; jjj < 3; jjj = jjj + 1) begin : col_loop
+    for (iii = 0; iii < SIZE; iii = iii + 1) begin : row_loop
+        for (jjj = 0; jjj < SIZE; jjj = jjj + 1) begin : col_loop
             assign in_img[iii][jjj] = window[iii][jjj][LINE_BUFFER_BUS_SIZE-1];
         end
     end
 endgenerate
 
 // Assign VS, HS, blank based on middle of buffer
-assign vs_no = window[1][1][LINE_BUFFER_BUS_SIZE-2]; 
-assign hs_no = window[1][1][LINE_BUFFER_BUS_SIZE-3]; 
-assign blank_no = window[1][1][LINE_BUFFER_BUS_SIZE-4]; 
+assign vs_no = window[CENTER][CENTER][LINE_BUFFER_BUS_SIZE-2]; 
+assign hs_no = window[CENTER][CENTER][LINE_BUFFER_BUS_SIZE-3]; 
+assign blank_no = window[CENTER][CENTER][LINE_BUFFER_BUS_SIZE-4]; 
 
 sliding_window # (
     .NUMBER_OF_LINES(SIZE),
@@ -98,9 +96,9 @@ sliding_window # (
             output_B = 8'h00;
         end
     end else begin
-        output_R = window_R[1][1][7:0];
-        output_G = window_G[1][1][7:0];
-        output_B = window_B[1][1][7:0];
+        output_R = window_R[CENTER][CENTER][7:0];
+        output_G = window_G[CENTER][CENTER][7:0];
+        output_B = window_B[CENTER][CENTER][7:0];
     end
     
 end
