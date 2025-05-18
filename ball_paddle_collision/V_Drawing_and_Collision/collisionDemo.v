@@ -66,7 +66,7 @@ assign paddleD = paddleRow1 + (PADDLE_H-1)>>1;
 
 
 ball_trajectory #(.BALL_W(BALL_SIZE), .BALL_H(BALL_SIZE)) ball(.clk(clk), .reset(!reset_n), .pause(SW[9]), .newFrame(newFrame),
-	.paddleLeft(paddleL), .paddleRight(paddleR), .paddleTop(paddleT), .paddleBottom(paddleB),
+	.paddleLeft(paddleL), .paddleRight(paddleR), .paddleTop(paddleU), .paddleBottom(paddleD),
 	.wallLeft(13'd0), .wallRight(13'd640), .wallTop(13'd0), .wallBottom(13'd480),
 	.ballXout(ball_pos_x), .ballYout(ball_pos_y));
 
