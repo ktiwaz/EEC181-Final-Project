@@ -4,6 +4,7 @@ module conv_kernel #(
 ) (
 
     input clk,
+	 input rstn,
     input vs_ni,
     input hs_ni,
     input blank_ni,
@@ -11,6 +12,9 @@ module conv_kernel #(
     input en_i,
     input filter_en,
     input [3:0] threshold_sw,
+
+    input [12:0] row,
+    input [12:0] col,
 
     input [PIXEL_DEPTH-1:0] input_R,
     input [PIXEL_DEPTH-1:0] input_G,
@@ -20,12 +24,18 @@ module conv_kernel #(
     output blank_no,
     output reg [PIXEL_DEPTH-1:0] output_R,
     output reg [PIXEL_DEPTH-1:0] output_G,
-    output reg [PIXEL_DEPTH-1:0] output_B
+    output reg [PIXEL_DEPTH-1:0] output_B,
+	 
+	 output [12:0] TO,
+	 output [12:0] BO,
+	 output [12:0] LO,
+	 output [12:0] RO
+
 );
 
 localparam SIZE = 5;
 localparam CENTER = SIZE / 2;
-localparam LINE_BUFFER_BUS_SIZE = 3*PIXEL_DEPTH + 4; // Extra bits for vs, hs, blank, color
+localparam LINE_BUFFER_BUS_SIZE = 3*PIXEL_DEPTH + 4 + 26; // Extra bits for vs, hs, blank, color
 
 wire [LINE_BUFFER_BUS_SIZE-1:0] window [0:SIZE-1][0:SIZE-1]; // Sliding window of pixels
 
@@ -61,7 +71,15 @@ assign vs_no = window[CENTER][CENTER][LINE_BUFFER_BUS_SIZE-2];
 assign hs_no = window[CENTER][CENTER][LINE_BUFFER_BUS_SIZE-3]; 
 assign blank_no = window[CENTER][CENTER][LINE_BUFFER_BUS_SIZE-4]; 
 
-sliding_window # (
+reg sync, sync_c;
+reg state, nextstate;
+
+localparam WAIT = 1'b0;
+localparam SYNC = 1'b1;
+
+
+
+  sliding_window # (
     .NUMBER_OF_LINES(SIZE),
     .WIDTH(LINE_WIDTH),
     .BUS_SIZE(LINE_BUFFER_BUS_SIZE)
@@ -69,7 +87,7 @@ sliding_window # (
   sliding_window_inst (
     .clock(clk),
     .EN(en_i),
-    .data({color_i, vs_ni, hs_ni, blank_ni, input_R, input_G, input_B}),
+    .data({color_i, vs_ni, hs_ni, blank_ni, row, col, input_R, input_G, input_B}),
     .dataout(window)
   );
 
@@ -77,24 +95,97 @@ sliding_window # (
     .N_SIZE(SIZE),
     .COLORS(1)
   )
-
   denoise_inst (
     .in_img(in_img),
     .out_img(out_img),
     .n_threshold(threshold_sw)
   );
+  
+  
+always @(posedge clk) begin
+	sync <= sync_c;
+	state <= nextstate;
+end
+
+always @(*) begin
+	sync_c = sync; 
+	nextstate = state;
+	
+	case (state)
+		WAIT: begin
+			if (~(window[CENTER][CENTER][LINE_BUFFER_BUS_SIZE-2])) begin
+				sync_c = 1'b1;
+				nextstate = SYNC;
+			end
+		end
+		
+		SYNC: begin
+			sync_c = 1'b0;
+			if (window[CENTER][CENTER][LINE_BUFFER_BUS_SIZE-2]) begin
+				nextstate = WAIT;
+			end
+		end
+	endcase
+	
+	if(~rstn) begin
+		sync_c = 1'b0;
+		nextstate = WAIT;
+	end
+end
+  
+  // 24 +26 +4 = 54 53:0
+  // 53
+  // 52
+  // 51
+  // 50
+  // 49:37
+  // 36:24
+  
+  wire [12:0] Col,Row;
+  assign Row = window[CENTER][CENTER][49:37];
+  assign Col = window[CENTER][CENTER][36:24];
+
+  wire [12:0] T,B,L,R;
+
+  assign TO = T;
+  assign BO = B;
+  assign LO = L;
+  assign RO = R;
+  
+  box bb (
+  	.clk      (clk),
+	.reset    (rstn),
+    .out_img (out_img),
+	.row      (Row),
+	.col      (Col),
+	.V_sync   (sync),
+	.T        (T),
+	.B        (B),
+	.L        (L),
+	.R        (R)
+  );
 
   always @(*) begin
     if(filter_en) begin
+
+
         if(out_img) begin
-            output_R = 8'hff;
-            output_G = 8'hff;
-            output_B = 8'hff;
-        end else begin
             output_R = 8'h00;
             output_G = 8'h00;
             output_B = 8'h00;
+        end else begin
+            output_R = 8'hff;
+            output_G = 8'hff;
+            output_B = 8'hff;
         end
+		  
+		if ((((Row == T)||(Row == B))&&(Col >= L)&&(Col <= R)) || (((Col == L)||(Col == R))&&(Row >= T)&&(Row <= B))) begin
+			output_R = 8'b11111111;
+			output_G = 8'b00000000;
+			output_B = 8'b00000000;				
+		end
+
+		  
     end else begin
         output_R = window_R[CENTER][CENTER][7:0];
         output_G = window_G[CENTER][CENTER][7:0];

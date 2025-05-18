@@ -99,11 +99,7 @@ assign MIPI_RESET_n   = RESET_N;
 assign CAMERA_PWDN_n  = RESET_N; 
 assign MIPI_CS_n      = 1'b0; 
 
-//--- Turn on LED[0] when SW[9] up
-assign LEDR[0] = SW[9];
 
-//--- Turn on HEX0[0] when KEY[3] pressed
-assign  HEX0[0] = KEY[3];
 
 //------ MIPI BRIDGE  I2C SETTING--------------- 
 MIPI_BRIDGE_CAMERA_Config cfin(
@@ -142,6 +138,8 @@ D8M_SET   ccd (
    .sCCD_B       ( raw_VGA_B )
 );
 
+wire [12:0] T,B,L,R;
+
 //--- Processes the raw RGB pixel data
 RGB_Process p1 (
    .raw_VGA_R (raw_VGA_R),
@@ -160,25 +158,71 @@ conv_kernel # (
     .PIXEL_DEPTH(8)
   )
   conv_kernel_inst (
-    .clk(VGA_CLK),
-    .en_i(1'b1),
-    .vs_ni(vga_vs_ni),
-    .hs_ni(vga_hs_ni),
-    .blank_ni(vga_blank_ni),
-    .color_i(o_color),
-    .filter_en(SW[1]),
-    .threshold_sw(SW[9:6]),
-    .input_R(oVGA_R),
-    .input_G(oVGA_G),
-    .input_B(oVGA_B),
-    .vs_no(VGA_VS),
-    .hs_no(VGA_HS),
-    .blank_no(VGA_BLANK_N),
-    .output_R(VGA_R),
-    .output_G(VGA_G),
-    .output_B(VGA_B)
+    .clk          (VGA_CLK),
+	 .rstn         (RESET_N),
+    .en_i         (1'b1),
+    .vs_ni        (vga_vs_ni),
+    .hs_ni        (vga_hs_ni),
+    .blank_ni     (vga_blank_ni),
+    .row          (row),
+    .col          (col),
+    .color_i      (o_color),
+    .filter_en    (SW[1]),
+    .threshold_sw (SW[9:6]),
+    .input_R      (oVGA_R),
+    .input_G      (oVGA_G),
+    .input_B      (oVGA_B),
+    .vs_no        (VGA_VS),
+    .hs_no        (VGA_HS),
+    .blank_no     (VGA_BLANK_N),
+    .output_R     (VGA_R),
+    .output_G     (VGA_G),
+    .output_B     (VGA_B),
+	 .TO(T),
+	 .BO(B),
+	 .LO(L),
+	 .RO(R)
   );
 
+ assign LEDR[9] = T[12];
+assign LEDR[8] = B[12];
+
+wire [7:0] HEX_0, HEX_1, HEX_2, HEX_3, HEX_4, HEX_5;
+
+assign HEX0 = HEX_0[6:0];
+assign HEX1 = HEX_1[6:0];
+assign HEX2 = HEX_2[6:0];
+assign HEX3 = HEX_3[6:0];
+assign HEX4 = HEX_4[6:0];
+assign HEX5 = HEX_5[6:0];
+
+Hex27Seg H0(
+	.HEX(HEX_0),
+	.num(T[3:0])
+);
+Hex27Seg H1(
+	.HEX(HEX_1),
+	.num(T[7:4])
+);
+
+Hex27Seg H2(
+	.HEX(HEX_2),
+	.num(T[11:8])
+);
+Hex27Seg H3(
+	.HEX(HEX_3),
+	.num(B[3:0])
+);
+
+Hex27Seg H4(
+	.HEX(HEX_4),
+	.num(B[7:4])
+);
+Hex27Seg H5(
+	.HEX(HEX_5),
+	.num(B[11:8])
+); 
+  
 //--- VGA interface signals ---
 assign VGA_CLK    = MIPI_PIXEL_CLK;           // GPIO clk
 assign VGA_SYNC_N = 1'b0;

@@ -46,4 +46,28 @@ end
 
 assign out_img = denoised_img;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 endmodule

@@ -7,7 +7,6 @@ module RGB_Process(
 	input  [12:0] col,
 
 	output reg [7:0] o_VGA_R,
-	
 	output reg [7:0] o_VGA_G,
 	output reg [7:0] o_VGA_B,
 	output reg o_color
@@ -16,7 +15,7 @@ module RGB_Process(
 wire signed [13:0] H_o;
 wire        [7:0] S_o;
 wire        [7:0] V_o;
-wire        [7:0] V_thresh;
+wire        [7:0] V_thresh_r, V_thresh_g;
 
 HSV pixel_HSV(
 	.R   (raw_VGA_R),
@@ -27,25 +26,20 @@ HSV pixel_HSV(
 	.V_o (V_o)
 );
 
-wire [13:0] H_u,H_d;
+wire [13:0] H_u_r,H_d_r;
+wire [13:0] H_u_g,H_d_g;
 
 // H, S=diff, V=max
 
-assign H_u1 = {6'b0,S_o>>2}; //0.25
-assign H_d1 = 0; //1.75	
+assign H_u_r = {6'b0,S_o>>2}; //0.25
+assign H_d_r = 0; //1.75	
 
-assign H_u2 = {6'b0,S_o<<2} + {6'b0,S_o<<1}; //6
-assign H_d2 = {6'b0,S_o<<1} + {6'b0,S_o} + {6'b0,S_o >> 1} + {6'b0,S_o >> 2}; //5.75
+assign H_u_g = (S_o<<1) + (S_o>>2); //2.25
+assign H_d_g = S_o + (S_o>>1) + (S_o >>2); //1.75
 
-assign V_thresh = V_o>>2;
+assign V_thresh_r = V_o>>1;
+assign V_thresh_g = V_o>>2;
 
-					// else begin
-					// 	if ((H_o<(H_out - 14'sd20)) || (H_o>(H_out + 14'sd20)) || (S_o<(S_out - 8'd20)) || (S_o>(S_out + 8'd20)) || (V_o<(V_out - 8'd20)) || (V_o > (V_out + 8'd20))) begin
-					// 		o_VGA_R = 8'hFF;
-					// 		o_VGA_B = 8'hFF;
-					// 		o_VGA_G = 8'hFF;
-					// 	end
-					// end
 
 always @(*)begin
 		if (row <= 13'd477 && col <= 13'd617) begin
@@ -53,10 +47,10 @@ always @(*)begin
 			o_VGA_B = raw_VGA_B;
 			o_VGA_G = raw_VGA_G;
 
-			if((H_o>H_d1)&&(H_o<H_u1)&&(H_o>H_d2)&&(H_o<H_u2)&&(S_o>V_thresh))begin
+			if((H_o>H_d_g)&&(H_o<H_u_g)/*&&(H_o>H_d2)&&(H_o<H_u2)*/&&(V_o>=8'd65)&&(S_o>V_thresh_g))begin
 				o_color = 1'b1;
 
-			end	else begin
+			end else begin
 				o_color = 1'b0;
 			end
 

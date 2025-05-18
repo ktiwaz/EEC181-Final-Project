@@ -476,7 +476,7 @@ case ( WCNT )
    148	 :SLV8_REG16_DATA8<= { 8'h6c,16'h3814, 8'h07}; // X inc odd. *** h01 for zoomed in. h07 for zoomed out. ***
    149	 :SLV8_REG16_DATA8<= { 8'h6c,16'h3815, 8'h01}; // X inc even
    150	 :SLV8_REG16_DATA8<= { 8'h6c,16'h3820, 8'h06}; // flip on
-   151	 :SLV8_REG16_DATA8<= { 8'h6c,16'h3821, 8'h70}; // hsync_en_o, fst_vbin, mirror on
+   151	 :SLV8_REG16_DATA8<= { 8'h6c,16'h3821, 8'h76}; // hsync_en_o, fst_vbin, mirror on
    152	 :SLV8_REG16_DATA8<= { 8'h6c,16'h382a, 8'h07}; // Y inc odd. *** h01 for zoomed in. h07 for zoomed out. ***
    153	 :SLV8_REG16_DATA8<= { 8'h6c,16'h382b, 8'h01}; // Y inc even
    154	 :SLV8_REG16_DATA8<= { 8'h6c,16'h3830, 8'd8}; // ablc_use_num[5:1]
@@ -618,9 +618,9 @@ case ( WCNT )
    287	 :SLV8_REG16_DATA8<= { 8'h6c,16'h583b, 8'h26};
    288	 :SLV8_REG16_DATA8<= { 8'h6c,16'h583c, 8'h24};
    289	 :SLV8_REG16_DATA8<= { 8'h6c,16'h583d, 8'hdf}; // lens correction
-   290	 :SLV8_REG16_DATA8<= { 8'h6c,16'h5018, 8'h19}; // Red MWB gain
-   291	 :SLV8_REG16_DATA8<= { 8'h6c,16'h501a, 8'h10}; // Green MWB gain
-   292	 :SLV8_REG16_DATA8<= { 8'h6c,16'h501c, 8'h17}; // Blue MWB gain
+   290	 :SLV8_REG16_DATA8<= { 8'h6c,16'h5018, 8'h32}; // Red MWB gain
+   291	 :SLV8_REG16_DATA8<= { 8'h6c,16'h501a, 8'h20}; // Green MWB gain
+   292	 :SLV8_REG16_DATA8<= { 8'h6c,16'h501c, 8'h2e}; // Blue MWB gain
    293	 :SLV8_REG16_DATA8<= { 8'h6c,16'h0100, 8'h01}; //; wake up, streaming
 	//     {END_OF_SCRIPT, 0, 0}
    endcase 
