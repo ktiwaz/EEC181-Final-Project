@@ -152,6 +152,10 @@ end
   assign LO = L;
   assign RO = R;
   
+  wire [12:0] ball_row, ball_col;
+  wire ball;
+  
+  
   box bb (
   	.clk      (clk),
 	.reset    (rstn),
@@ -164,7 +168,28 @@ end
 	.L        (L),
 	.R        (R)
   );
+  
+  ball ball_inst(
+	.clk     (clk),
+	.reset_n (rstn),
+	.sync    (sync),
+	.T       (T),
+	.B       (B),
+	.L       (L),
+	.R       (R),
+   .row     (ball_row),
+	.col     (ball_col)
+  );
 
+  draw_ball draw(
+	.row      (Row),
+	.col      (Col),
+	.ball_row (ball_row),
+	.ball_col (ball_col),
+//	.radius   (),
+	.ball     (ball),
+  );
+  
   always @(*) begin
     if(filter_en) begin
 
@@ -183,6 +208,12 @@ end
 			output_R = 8'b11111111;
 			output_G = 8'b00000000;
 			output_B = 8'b00000000;				
+		end
+		
+		if (ball) begin
+			output_R = 8'b00000000;
+			output_G = 8'b11111111;
+			output_B = 8'b00000000;							
 		end
 
 		  

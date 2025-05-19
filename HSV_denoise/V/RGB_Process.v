@@ -47,7 +47,7 @@ always @(*)begin
 			o_VGA_B = raw_VGA_B;
 			o_VGA_G = raw_VGA_G;
 
-			if((H_o>H_d_g)&&(H_o<H_u_g)/*&&(H_o>H_d2)&&(H_o<H_u2)*/&&(V_o>=8'd65)&&(S_o>V_thresh_g))begin
+			if((H_o>H_d_r)&&(H_o<H_u_r)/*&&(H_o>H_d2)&&(H_o<H_u2)*/&&(V_o>=8'd65)&&(S_o>V_thresh_r))begin
 				o_color = 1'b1;
 
 			end else begin
