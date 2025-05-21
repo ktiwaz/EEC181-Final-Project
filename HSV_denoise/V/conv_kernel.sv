@@ -11,6 +11,7 @@ module conv_kernel #(
     input color_i,
     input en_i,
     input filter_en,
+    input rect_en,
     input [3:0] threshold_sw,
 
     input [12:0] row,
@@ -146,6 +147,7 @@ end
   assign Col = window[CENTER][CENTER][36:24];
 
   wire [12:0] T,B,L,R;
+  wire in_rect;
 
   assign TO = T;
   assign BO = B;
@@ -162,7 +164,8 @@ end
 	.T        (T),
 	.B        (B),
 	.L        (L),
-	.R        (R)
+	.R        (R),
+  .in_rect  (in_rect)
   );
 
   always @(*) begin
@@ -183,7 +186,13 @@ end
 			output_R = 8'b11111111;
 			output_G = 8'b00000000;
 			output_B = 8'b00000000;				
-		end
+    end else if (rect_en) begin
+      if(in_rect) begin
+        output_R = 8'b11111111;
+        output_G = 8'b00000000;
+        output_B = 8'b00000000;			
+      end
+    end
 
 		  
     end else begin

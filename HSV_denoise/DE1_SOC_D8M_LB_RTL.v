@@ -168,6 +168,7 @@ conv_kernel # (
     .col          (col),
     .color_i      (o_color),
     .filter_en    (SW[1]),
+    .rect_en      (SW[2]),
     .threshold_sw (SW[9:6]),
     .input_R      (oVGA_R),
     .input_G      (oVGA_G),
@@ -187,41 +188,6 @@ conv_kernel # (
  assign LEDR[9] = T[12];
 assign LEDR[8] = B[12];
 
-wire [7:0] HEX_0, HEX_1, HEX_2, HEX_3, HEX_4, HEX_5;
-
-assign HEX0 = HEX_0[6:0];
-assign HEX1 = HEX_1[6:0];
-assign HEX2 = HEX_2[6:0];
-assign HEX3 = HEX_3[6:0];
-assign HEX4 = HEX_4[6:0];
-assign HEX5 = HEX_5[6:0];
-
-Hex27Seg H0(
-	.HEX(HEX_0),
-	.num(T[3:0])
-);
-Hex27Seg H1(
-	.HEX(HEX_1),
-	.num(T[7:4])
-);
-
-Hex27Seg H2(
-	.HEX(HEX_2),
-	.num(T[11:8])
-);
-Hex27Seg H3(
-	.HEX(HEX_3),
-	.num(B[3:0])
-);
-
-Hex27Seg H4(
-	.HEX(HEX_4),
-	.num(B[7:4])
-);
-Hex27Seg H5(
-	.HEX(HEX_5),
-	.num(B[11:8])
-); 
   
 //--- VGA interface signals ---
 assign VGA_CLK    = MIPI_PIXEL_CLK;           // GPIO clk
